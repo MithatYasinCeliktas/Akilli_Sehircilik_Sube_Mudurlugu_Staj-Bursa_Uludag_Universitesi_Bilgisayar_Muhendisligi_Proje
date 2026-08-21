@@ -140,7 +140,7 @@ export class ReportService {
     return this.http.get(`${environment.apiUrl}/export/excel-template`, { responseType: 'blob', observe: 'response' });
   }
   getReportIdByItem(itemId: number): Observable<number> {
-    return this.http.get<DataResponse<number>>(`${this.baseUrl}/item/${itemId}/report-id`).pipe(map(res => res.data));
+    return this.http.get<DataResponse<number>>(`${this.baseUrl}/items/${itemId}/report-id`).pipe(map(res => res.data));
   }
   previewImport(file: File, targetReport: 'OWN_REPORT' | 'MANAGER_REPORT'): Observable<any> {
     const formData = new FormData();
