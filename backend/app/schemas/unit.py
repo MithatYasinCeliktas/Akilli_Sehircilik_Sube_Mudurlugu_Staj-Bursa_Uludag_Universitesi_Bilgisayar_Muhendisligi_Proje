@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import Field
+from pydantic import model_validator
 from app.schemas.common import BaseSchema
 from app.models.unit import UnitType
 
@@ -13,7 +14,17 @@ class UnitBase(BaseSchema):
     code: Optional[str] = Field(None, max_length=50, description="Birim kod tanımlayıcısı")
     description: Optional[str] = Field(None, max_length=500, description="Birim açıklaması")
     unit_type: UnitType = Field(default=UnitType.SUB_UNIT, description="Birim Tipi")
+
     parent_id: Optional[int] = Field(None, description="Üst birim ID'si")
+
+    @model_validator(mode='before')
+    @classmethod
+    def empty_code_to_none(cls, data: any) -> any:
+        if isinstance(data, dict):
+            if data.get('code') == '':
+                data['code'] = None
+        return data
+
 
 
 class UnitCreate(UnitBase):
@@ -31,7 +42,17 @@ class UnitUpdate(BaseSchema):
     code: Optional[str] = Field(None, max_length=50, description="Birim koda göre güncelleme")
     description: Optional[str] = Field(None, max_length=500, description="Açıklama")
     unit_type: Optional[UnitType] = Field(None, description="Birim Tipi")
+
     parent_id: Optional[int] = Field(None, description="Üst birim ID'si")
+
+    @model_validator(mode='before')
+    @classmethod
+    def empty_code_to_none(cls, data: any) -> any:
+        if isinstance(data, dict):
+            if data.get('code') == '':
+                data['code'] = None
+        return data
+
 
 
 class UnitResponse(UnitBase):
