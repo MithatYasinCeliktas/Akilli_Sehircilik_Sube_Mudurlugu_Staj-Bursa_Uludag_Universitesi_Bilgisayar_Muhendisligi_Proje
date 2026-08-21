@@ -182,7 +182,7 @@ export class ReportFormComponent implements OnInit {
   }
 
   onReportSubmit(): void {
-    if (this.reportForm.invalid) return;
+    if (this.reportForm.invalid) { this.reportForm.markAllAsTouched(); return; }
 
     this.loading = true;
     const formValue = this.reportForm.value;
@@ -194,7 +194,7 @@ export class ReportFormComponent implements OnInit {
           this.messageService.add({ severity: 'success', summary: 'Başarılı', detail: 'Rapor güncellendi' });
           this.loadReportData(this.reportId!);
         },
-        error: () => { this.loading = false; }
+        error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
       });
     } else {
       this.reportService.createReport(formValue).subscribe({
@@ -203,7 +203,7 @@ export class ReportFormComponent implements OnInit {
           this.messageService.add({ severity: 'success', summary: 'Başarılı', detail: 'Yeni rapor oluşturuldu' });
           this.router.navigate(['/reports', created.id]);
         },
-        error: () => { this.loading = false; }
+        error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
       });
     }
   }
@@ -271,7 +271,7 @@ export class ReportFormComponent implements OnInit {
           this.displayItemModal = false;
           this.loadReportData(this.reportId!);
         },
-        error: () => { this.loading = false; }
+        error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
       });
     } else {
       this.reportService.addReportItem(this.reportId, val).subscribe({
@@ -280,7 +280,7 @@ export class ReportFormComponent implements OnInit {
           this.displayItemModal = false;
           this.loadReportData(this.reportId!);
         },
-        error: () => { this.loading = false; }
+        error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
       });
     }
   }
@@ -293,7 +293,7 @@ export class ReportFormComponent implements OnInit {
         this.loading = false;
         this.loadReportData(this.reportId!);
       },
-      error: () => { this.loading = false; }
+      error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
     });
   }
 
@@ -324,7 +324,7 @@ export class ReportFormComponent implements OnInit {
         this.displayReviewModal = false;
         this.loadReportData(this.reportId!);
       },
-      error: () => { this.loading = false; }
+      error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
     });
   }
 
@@ -347,7 +347,7 @@ export class ReportFormComponent implements OnInit {
         this.messageService.add({ severity: 'success', summary: 'Başarılı', detail: 'Red durumu alt personele başarıyla iletildi.' });
         this.loadReportData(this.reportId!);
       },
-      error: () => { this.loading = false; }
+      error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
     });
   }
 
@@ -386,7 +386,7 @@ export class ReportFormComponent implements OnInit {
         // You might want to navigate to the manager's report, but res is the manager's report so we can just redirect
         this.router.navigate(['/reports', res.id]);
       },
-      error: () => { this.loading = false; }
+      error: (err: any) => { this.loading = false; this.messageService.add({severity:'error', summary:'Hata', detail:err.error?.detail || 'Kayıt sırasında hata oluştu'}); }
     });
   }
 

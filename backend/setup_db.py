@@ -22,6 +22,8 @@ from app.models.user import User, UserRole  # noqa: F401
 from app.models.report import ActivityReport, ReportItem  # noqa: F401
 from app.models.report_share import ReportShare  # noqa: F401
 from app.models.institution import Institution  # noqa: F401
+from app.models.system_log import SystemLog
+from app.models.notification import Notification
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

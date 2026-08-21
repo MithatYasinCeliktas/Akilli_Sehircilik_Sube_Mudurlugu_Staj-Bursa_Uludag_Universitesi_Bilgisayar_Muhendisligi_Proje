@@ -452,6 +452,7 @@ export class UnitListComponent implements OnInit {
   onUnitFormSubmit(): void {
     if (this.unitForm.invalid) {
       this.unitForm.markAllAsTouched();
+      this.unitForm.markAllAsTouched();
       return;
     }
 
