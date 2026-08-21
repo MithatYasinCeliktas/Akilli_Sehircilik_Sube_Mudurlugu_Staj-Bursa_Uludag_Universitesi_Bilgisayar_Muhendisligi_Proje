@@ -16,7 +16,7 @@ docker-compose up -d --build
 echo.
 echo ===================================================
 echo   SISTEM BASARIYLA AYAGA KALDIRILDI!
-echo   Frontend: http://localhost:4200
-echo   Backend API: http://localhost:8000/docs
+echo   Frontend: http://192.168.1.152:4200
+echo   Backend API: http://192.168.1.152:8000/docs
 echo ===================================================
 pause

@@ -1,2 +1,2 @@
 [InternetShortcut]
-URL=http://localhost:4200/auth/login?returnUrl=%2Fdashboard
+URL=http://192.168.1.152:4200/auth/login?returnUrl=%2Fdashboard
