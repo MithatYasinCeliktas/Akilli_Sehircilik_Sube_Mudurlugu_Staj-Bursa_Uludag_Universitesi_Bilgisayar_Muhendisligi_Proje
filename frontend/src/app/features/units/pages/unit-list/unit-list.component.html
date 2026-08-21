@@ -136,7 +136,7 @@
             </div>
 
             <!-- Sağ Yanda Kullanıcılar (Eğer Sağ Kolon ise veya Kök ise) -->
-            <div *ngIf="(direction === 'left' || !direction) && node.data?.sideUsers?.length > 0" class="absolute flex flex-column gap-2 z-3" style="width: 14rem; left: calc(100% + 1rem); top: 0;">
+            <div *ngIf="(direction === 'left' || direction === 'center' || !direction) && node.data?.sideUsers?.length > 0" class="absolute flex flex-column gap-2 z-3" style="width: 14rem; left: calc(100% + 1rem); top: 0;">
                <ng-container *ngTemplateOutlet="sideUsersTemplate; context: {$implicit: node}"></ng-container>
             </div>
           </div>
