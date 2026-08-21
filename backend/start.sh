@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 echo "Veritabanı tabloları oluşturuluyor ve örnek veriler yükleniyor..."
 python setup_db.py
 
