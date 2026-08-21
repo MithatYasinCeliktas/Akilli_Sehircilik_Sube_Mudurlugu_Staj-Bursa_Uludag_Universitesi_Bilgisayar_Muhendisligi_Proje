@@ -232,6 +232,7 @@ export class UnitListComponent implements OnInit {
   onViewModeChange(event: any): void {
     if (event) {
       this.viewMode = event;
+      this.filterTree();
     }
   }
 
@@ -540,7 +541,7 @@ export class UnitListComponent implements OnInit {
               ? unit._originalChildrenLength > 0 
               : (unit.children && unit.children.length > 0);
 
-          if (hasOriginalChildren) {
+          if (hasOriginalChildren && this.viewMode === 'chart') {
             node.data.sideUsers = userNodes;
             
             let hasSearchMatch = false;
