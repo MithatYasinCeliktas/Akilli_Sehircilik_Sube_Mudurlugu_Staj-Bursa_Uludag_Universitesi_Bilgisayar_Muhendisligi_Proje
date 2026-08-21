@@ -1,0 +1,227 @@
+<div class="card surface-card p-4 shadow-1 border-round">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold m-0">Kullanıcı Yönetimi</h2>
+    <button
+      pButton
+      label="Yeni Kullanıcı Ekle"
+      icon="pi pi-plus"
+      class="p-button-primary"
+      (click)="showCreateDialog()"
+    ></button>
+  </div>
+
+  <div class="grid mb-4">
+    <div class="col-12 md:col-4">
+      <div class="border-round-lg border-1 border-400 shadow-1 p-1 w-full h-full flex align-items-center surface-card">
+        <div class="flex w-full">
+          <div class="flex align-items-center justify-content-center border-round-left-lg border-right-1 surface-border surface-card px-3 py-2">
+            <svg viewBox="0 0 20 20" aria-hidden="true" class="pointer-events-none w-1rem text-500 transition-colors" style="fill: currentColor;">
+              <path d="M16.72 17.78a.75.75 0 1 0 1.06-1.06l-1.06 1.06ZM9 14.5A5.5 5.5 0 0 1 3.5 9H2a7 7 0 0 0 7 7v-1.5ZM3.5 9A5.5 5.5 0 0 1 9 3.5V2a7 7 0 0 0-7 7h1.5ZM9 3.5A5.5 5.5 0 0 1 14.5 9H16a7 7 0 0 0-7-7v1.5Zm3.89 10.45 3.83 3.83 1.06-1.06-3.83-3.83-1.06 1.06ZM14.5 9a5.48 5.48 0 0 1-1.61 3.89l1.06 1.06A6.98 6.98 0 0 0 16 9h-1.5Zm-1.61 3.89A5.48 5.48 0 0 1 9 14.5V16a6.98 6.98 0 0 0 4.95-2.05l-1.06-1.06Z"></path>
+            </svg>
+          </div>
+          <input type="text" class="w-full surface-card text-color pl-2 text-base outline-none border-none m-0" placeholder="Ad Soyad, Ünvan veya E-Posta..." [(ngModel)]="searchText" (keyup.enter)="applyFilters()">
+          <input type="button" value="Ara" class="bg-blue-500 px-3 py-2 border-round-right-lg text-white font-semibold hover:bg-blue-800 transition-colors cursor-pointer border-none" (click)="applyFilters()">
+        </div>
+      </div>
+    </div>
+    <div class="col-12 md:col-3">
+      <p-dropdown
+        [options]="units"
+        [(ngModel)]="filterUnitId"
+        [group]="true"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        [filter]="true"
+        filterPlaceholder="Birim ara..."
+        placeholder="Birim Seçin"
+        class="w-full p-fluid"
+        (onChange)="applyFilters()"
+        appendTo="body"
+      ></p-dropdown>
+    </div>
+    <div class="col-12 md:col-3">
+      <p-dropdown
+        [options]="roleOptions"
+        [(ngModel)]="filterRole"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        placeholder="Rol Seçin"
+        class="w-full p-fluid"
+        (onChange)="applyFilters()"
+        appendTo="body"
+      ></p-dropdown>
+    </div>
+    <div class="col-12 md:col-2 flex align-items-center gap-2">
+      <button pButton label="Ara" icon="pi pi-search" class="p-button-outlined" (click)="applyFilters()"></button>
+      <button pButton label="Temizle" icon="pi pi-filter-slash" class="p-button-outlined p-button-secondary" (click)="clearFilters()"></button>
+    </div>
+  </div>
+
+  <p-table
+    [value]="users"
+    [loading]="loading"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="totalRecords"
+    [(first)]="first"
+    [lazy]="true"
+    (onPage)="onPageChange($event)"
+    responsiveLayout="scroll"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Ad Soyad</th>
+        <th>E-Posta</th>
+        <th>Birim / Şube</th>
+        <th>Rol</th>
+        <th>Süper Yetkili</th>
+        <th>Durum</th>
+        <th>İşlemler</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-user>
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.full_name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.unit?.name || '-' }}</td>
+        <td>{{ user.role }}</td>
+        <td><i class="pi" [ngClass]="{'pi-check text-green-500': user.is_superuser, 'pi-times text-red-500': !user.is_superuser}"></i></td>
+        <td>
+          <span class="p-tag" [ngClass]="user.is_active ? 'p-tag-success' : 'p-tag-danger'">
+            {{ user.is_active ? 'Aktif' : 'Pasif' }}
+          </span>
+        </td>
+        <td>
+          <div class="flex gap-2">
+            <button
+              *ngIf="!(currentUser?.role === 'USER_MANAGER' && (user.role === 'ADMIN' || user.is_superuser))"
+              pButton
+              icon="pi pi-pencil"
+              class="p-button-rounded p-button-text p-button-warning"
+              (click)="showEditDialog(user)"
+              pTooltip="Düzenle"
+            ></button>
+            <button
+              *ngIf="currentUser?.role === 'ADMIN' || currentUser?.is_superuser"
+              pButton
+              icon="pi pi-trash"
+              class="p-button-rounded p-button-text p-button-danger"
+              (click)="deleteUser(user)"
+              pTooltip="Sil"
+            ></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Kullanıcı Ekleme / Güncelleme Modali -->
+<p-dialog
+  [header]="isEditMode ? 'Kullanıcı Güncelle' : 'Yeni Kullanıcı Ekle'"
+  [(visible)]="displayCreateDialog"
+  [modal]="true"
+  [style]="{ width: '850px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <form [formGroup]="userForm" (ngSubmit)="onUserFormSubmit()">
+    <div class="p-fluid">
+      <div class="field mb-3">
+        <label for="email" class="block font-medium mb-1">E-Posta Adresi</label>
+        <input pInputText id="email" type="email" formControlName="email" placeholder="ornek@belediye.gov.tr" />
+        <small class="text-red-500 block mt-1" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+          Geçerli bir e-posta adresi girin.
+        </small>
+      </div>
+
+      <div class="field mb-3">
+        <label for="full_name" class="block font-medium mb-1">Ad Soyad</label>
+        <input pInputText id="full_name" type="text" formControlName="full_name" placeholder="Ad Soyad girin..." />
+        <small class="text-red-500 block mt-1" *ngIf="userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched">
+          Ad Soyad alanı zorunludur.
+        </small>
+      </div>
+
+      <div class="field mb-3">
+        <label for="password" class="block font-medium mb-1">Şifre</label>
+        <input pInputText id="password" type="password" formControlName="password" [placeholder]="isEditMode ? 'Değiştirmek istemiyorsanız boş bırakın...' : 'Şifre belirleyin...'" />
+        <small class="text-red-500 block mt-1" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+          Şifre en az 6 karakter olmalıdır.
+        </small>
+      </div>
+
+      <div class="field mb-3">
+        <label for="role" class="block font-medium mb-1">Rol</label>
+        <p-dropdown
+          id="role"
+          [options]="roleOptions"
+          formControlName="role"
+          optionLabel="label"
+          optionValue="value"
+          class="w-full"
+          appendTo="body"
+        ></p-dropdown>
+      </div>
+
+      <div class="field mb-3">
+        <label for="title" class="block font-medium mb-1">Ünvan</label>
+        <input pInputText id="title" type="text" formControlName="title" placeholder="Mühendis, Uzman vb." />
+      </div>
+
+      <div class="field mb-3">
+        <label for="unit_id" class="block font-medium mb-1">Bağlı Olduğu Birim / Şube</label>
+        <p-dropdown
+          id="unit_id"
+          [options]="units"
+          formControlName="unit_id"
+          [group]="true"
+          optionLabel="label"
+          optionValue="value"
+          [showClear]="true"
+          [filter]="true"
+          filterPlaceholder="Birim ara..."
+          placeholder="Birim Seçin"
+          class="w-full"
+          appendTo="body"
+        ></p-dropdown>
+      </div>
+
+      <div class="field mb-3">
+        <label for="manager_id" class="block font-medium mb-1">Yönetici</label>
+        <p-dropdown
+          id="manager_id"
+          [options]="managers"
+          formControlName="manager_id"
+          optionLabel="label"
+          optionValue="value"
+          [showClear]="true"
+          placeholder="Yönetici Seçin"
+          class="w-full"
+          appendTo="body"
+        ></p-dropdown>
+      </div>
+
+      <div class="flex gap-4 mb-4 mt-2">
+        <div class="flex align-items-center gap-2">
+          <p-checkbox formControlName="is_active" [binary]="true" inputId="is_active"></p-checkbox>
+          <label for="is_active" class="font-medium cursor-pointer">Aktif Kullanıcı</label>
+        </div>
+        <div class="flex align-items-center gap-2">
+          <p-checkbox formControlName="is_superuser" [binary]="true" inputId="is_superuser" [disabled]="userForm.get('role')?.value !== 'ADMIN'"></p-checkbox>
+          <label for="is_superuser" class="font-medium cursor-pointer" [ngClass]="{'text-400': userForm.get('role')?.value !== 'ADMIN'}">Süper Yetkili (Admin)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-content-end gap-2">
+      <button pButton type="button" label="İptal" class="p-button-secondary p-button-outlined" (click)="displayCreateDialog = false"></button>
+      <button pButton type="submit" label="Kullanıcıyı Kaydet" icon="pi pi-check" class="p-button-primary" [loading]="formLoading"></button>
+    </div>
+  </form>
+</p-dialog>

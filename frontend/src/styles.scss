@@ -1,0 +1,899 @@
+/* Import PrimeNG and PrimeFlex styles */
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.min.css";
+@import "primeicons/primeicons.css";
+@import "primeflex/primeflex.css";
+
+/* Google Font for premium typography */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* =========================================================================
+     GENEL DEĞİŞKENLER (Global Variables)
+     ========================================================================= */
+  /* Dinamik şeffaflık değişkeni */
+  --panel-opacity: 0.4;
+  
+  /* Uygulamanın tüm sayfalarındaki genel yazı tipi (font ailesi) */
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Pencereler ve genel bileşenler için varsayılan köşe yuvarlaklık derecesi */
+  --base-border-radius: 12px;
+  
+  /* Sayfalardaki varsayılan ana metin (yazı) rengi (Koyu gri/Siyah) */
+  --text-color: #1e293b;
+  
+  /* Sayfalardaki ikincil, daha soluk açıklama metinlerinin rengi */
+  --text-secondary-color: #64748b;
+  
+  /* Sayfanın en altındaki ana arka plan (zemin) rengi (Açık gri/beyaz) */
+  --surface-ground: #f8fafc;
+  
+  /* Beyaz arka plana sahip kart, tablo ve pencerelerin (dialog) arka plan rengi */
+  --surface-card: #ffffff;
+
+  /* =========================================================================
+     RENK PALETİ (Color Palette)
+     ========================================================================= */
+  /* Kurumun birincil rengi (Yeşil). Vurgulanan alanlar ve ana işlemlerde kullanılır. */
+  --primary-color: #008753;
+  
+  /* Birincil renk üzerine yazılan yazıların rengi (Genelde beyaz) */
+  --primary-color-text: #ffffff;
+  
+  /* Kurumun ikincil rengi (Mavi). Yardımcı ikonlar ve geçişlerde kullanılır. */
+  --secondary-color: #0056a0;
+  
+  /* Dikkat çekmesi istenen ufak detaylar için kullanılan vurgu rengi */
+  --accent-color: #0ea5e9;
+
+  /* =========================================================================
+     BUTONLAR (Buttons)
+     ========================================================================= */
+  /* Tüm butonların köşe yuvarlaklık derecesi */
+  --btn-border-radius: 10px;
+  
+  /* Butonların içindeki yazıların kalınlık (bold) derecesi */
+  --btn-font-weight: 600;
+  
+  /* Onaylama, Kaydetme gibi işlemlerdeki "Birincil Butonun" arka plan rengi */
+  --btn-primary-bg: #22c55e;
+  
+  /* Fare ile Birincil Butonun üzerine gelindiğinde (hover) alacağı renk */
+  --btn-primary-hover-bg: #16a34a;
+  
+  /* Birincil Butonun içindeki yazının rengi */
+  --btn-primary-text: #ffffff;
+  
+  /* İptal et, Geri dön gibi işlemlerdeki "İkincil Butonun" arka plan rengi */
+  --btn-secondary-bg: #ffffff;
+  
+  /* İkincil Butonun dış çerçeve (border) rengi */
+  --btn-secondary-border: #cbd5e1;
+  
+  /* İkincil Butonun içindeki yazının rengi */
+  --btn-secondary-text: #475569;
+  
+  /* Fare ile İkincil Butonun üzerine gelindiğinde (hover) alacağı arka plan rengi */
+  --btn-secondary-hover-bg: #f8fafc;
+
+  /* =========================================================================
+     GİRİŞ ALANLARI / SEARCHBAR (Inputs & Searchbars)
+     ========================================================================= */
+  /* Arama çubuğu ve yazı girme kutularının köşe yuvarlaklığı */
+  --input-border-radius: 10px;
+  
+  /* Yazı kutularının iç boşluğu (Yükseklik ve genişliğini etkiler) */
+  --input-padding: 0.75rem 1rem;
+  
+  /* Yazı kutusunun boş durumdaki dış çerçeve rengi */
+  --input-border-color: #cbd5e1;
+  
+  /* Yazı kutusuna tıklandığında (odaklanıldığında) çerçevenin alacağı renk */
+  --input-focus-border-color: var(--primary-color);
+  
+  /* =========================================================================
+     ÜST MENÜ (Navbar) & YAN MENÜ (Sidebar)
+     ========================================================================= */
+  /* Üst yatay menünün (Navbar) genel arka plan rengi */
+  --navbar-bg: #0f172a;
+  
+  /* Üst menüdeki yazı ve ikonların rengi */
+  --navbar-text: #ffffff;
+  
+  /* Üst menüyü sayfadan ayıran alt çizginin rengi */
+  --navbar-border-color: #1e293b;
+
+  /* Sol taraftaki dikey menünün (Sidebar) genel arka plan rengi */
+  --sidebar-bg: #0f172a;
+  
+  /* Sol menüyü sayfadan ayıran sağ çizginin rengi */
+  --sidebar-border-color: #1e293b;
+  
+  /* Sol menüdeki tıklanabilir link kutucuklarının arka plan rengi */
+  --sidebar-menu-bg: #22c55e;
+  
+  /* Fare ile sol menü linkinin üzerine gelindiğinde alacağı arka plan rengi */
+  --sidebar-menu-hover-bg: #16a34a;
+  
+  /* Şu an aktif (bulunulan) sayfanın sol menüdeki kutucuğunun rengi */
+  --sidebar-menu-active-bg: #064e3b;
+  
+  /* Sol menüdeki link kutucuklarının köşe yuvarlaklığı */
+  --sidebar-menu-border-radius: 8px;
+
+  /* =========================================================================
+     TABLOLAR & KARTLAR (Tables & Cards)
+     ========================================================================= */
+  /* Tabloların en üstündeki başlık (Kolon adları) satırının arka plan rengi */
+  --table-header-bg: #f8fafc;
+  
+  /* Tablo başlıklarındaki yazıların rengi */
+  --table-header-text: #475569;
+  
+  /* Tablo başlıklarındaki yazıların kalınlık derecesi */
+  --table-header-font-weight: 600;
+  
+  /* Tabloyu ve satırları birbirinden ayıran çizgilerin rengi */
+  --table-border-color: #e2e8f0;
+  
+  /* Fare ile tablo satırının üzerine gelindiğinde satırın alacağı renk */
+  --table-row-hover-bg: rgba(241, 245, 249, 0.5);
+  
+  /* İstatistik kartları gibi kutuların köşe yuvarlaklığı */
+  --card-border-radius: 12px;
+  
+  --card-border-color: #e2e8f0;
+  
+  /* Ağaç görünümlerindeki bağlayıcı çizgilerin rengi */
+  --tree-line-color: #22c55e;
+}
+
+/* =========================================================================
+   KARANLIK MOD (Dark Mode) DEĞİŞKEN EZMELERİ
+   ========================================================================= */
+body.dark-mode {
+  /* Arka planlar */
+  --surface-ground: #121212 !important;
+  --surface-card: #1e1e1e !important;
+  
+  /* Metinler */
+  --text-color: #ffffff !important;
+  --text-secondary-color: #a0aabf !important;
+  
+  /* Giriş Alanları */
+  --input-border-color: #3f3f46 !important;
+  
+  /* Menüler */
+  --sidebar-bg: #1e1e1e !important;
+  --sidebar-text: #e2e8f0 !important;
+  --sidebar-hover: #334155 !important;
+  --sidebar-active-bg: #0f172a !important;
+  --navbar-bg: #121212 !important;
+  
+  /* Tablo ve Kart */
+  --table-header-bg: #27272a !important;
+  --table-header-text: #e2e8f0 !important;
+  --table-border-color: #3f3f46 !important;
+  --table-row-hover-bg: rgba(63, 63, 70, 0.5) !important;
+  --card-border-color: #3f3f46 !important;
+  
+  /* Ağaç görünümlerindeki bağlayıcı çizgilerin rengi (Karanlık Mod) */
+  --tree-line-color: #ffffff !important;
+}
+
+/* PrimeNG Tema Ezmeleri (Dark Mode) */
+body.dark-mode .p-card, 
+body.dark-mode .p-panel .p-panel-content, 
+body.dark-mode .p-dialog .p-dialog-content, 
+body.dark-mode .p-dialog .p-dialog-header, 
+body.dark-mode .p-dialog .p-dialog-footer,
+body.dark-mode .p-sidebar, 
+body.dark-mode .p-overlaypanel .p-overlaypanel-content,
+body.dark-mode .p-tabview .p-tabview-nav,
+body.dark-mode .p-tabview .p-tabview-nav li .p-tabview-nav-link,
+body.dark-mode .p-tabview .p-tabview-panels {
+  background-color: var(--surface-card) !important;
+  color: var(--text-color) !important;
+  border-color: #3f3f46 !important;
+}
+
+body.dark-mode .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  background-color: #27272a !important;
+  color: var(--primary-color, #22c55e) !important;
+  border-color: var(--primary-color, #22c55e) !important;
+}
+
+body.dark-mode .p-datatable .p-datatable-header,
+body.dark-mode .p-datatable .p-datatable-thead > tr > th,
+body.dark-mode .p-datatable .p-datatable-tbody > tr > td,
+body.dark-mode .p-datatable .p-datatable-footer,
+body.dark-mode .p-paginator {
+  background-color: var(--surface-card) !important;
+  color: var(--text-color) !important;
+  border-color: #3f3f46 !important;
+}
+
+body.dark-mode .p-datatable .p-datatable-tbody > tr {
+  background-color: var(--surface-card) !important;
+  color: var(--text-color) !important;
+}
+
+body.dark-mode .p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #27272a !important;
+}
+
+body.dark-mode .p-inputtext, 
+body.dark-mode .p-dropdown, 
+body.dark-mode .p-multiselect,
+body.dark-mode .p-treeselect,
+body.dark-mode .p-treeselect .p-treeselect-label,
+body.dark-mode .p-password-input {
+  background-color: #27272a !important;
+  color: var(--text-color) !important;
+  border-color: #3f3f46 !important;
+}
+
+body.dark-mode .p-dropdown-panel, 
+body.dark-mode .p-multiselect-panel, 
+body.dark-mode .p-treeselect-panel,
+body.dark-mode .p-menu {
+  background-color: #27272a !important;
+  border-color: #3f3f46 !important;
+}
+
+body.dark-mode .p-dropdown-panel .p-dropdown-items .p-dropdown-item,
+body.dark-mode .p-multiselect-panel .p-multiselect-items .p-multiselect-item,
+body.dark-mode .p-treeselect-panel .p-treenode-content,
+body.dark-mode .p-treeselect-panel .p-treenode-label,
+body.dark-mode .p-menu .p-menuitem-link {
+  color: var(--text-color) !important;
+}
+
+body.dark-mode .p-dropdown-panel .p-dropdown-items .p-dropdown-item:hover,
+body.dark-mode .p-multiselect-panel .p-multiselect-items .p-multiselect-item:hover,
+body.dark-mode .p-treeselect-panel .p-treenode-content:hover,
+body.dark-mode .p-menu .p-menuitem-link:hover {
+  background-color: #064e3b !important; /* Koyu yeşil */
+  color: #ffffff !important;
+}
+
+/* Seçilen (highlight) ögeler Lacivert */
+body.dark-mode .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight,
+body.dark-mode .p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight,
+body.dark-mode .p-treeselect-panel .p-treenode-content.p-highlight {
+  background-color: #1e3a8a !important; /* Lacivert */
+  color: #ffffff !important;
+}
+
+/* Seçilen (highlight) ögelerin hover durumu (Koyu Yeşil) */
+body.dark-mode .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight:hover,
+body.dark-mode .p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight:hover,
+body.dark-mode .p-treeselect-panel .p-treenode-content.p-highlight:hover {
+  background-color: #064e3b !important; /* Koyu yeşil */
+  color: #ffffff !important;
+}
+
+/* MultiSelect ve TreeSelect etiketleri (Token) Lacivert */
+body.dark-mode .p-multiselect .p-multiselect-token,
+body.dark-mode .p-treeselect .p-treeselect-token {
+  background-color: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+/* Glassmorphism Ayarları (Dark Mode'da beyaz yerine siyah) */
+body.dark-mode .surface-card, 
+body.dark-mode .municipal-card, 
+body.dark-mode .p-dialog .p-dialog-content, 
+body.dark-mode .p-dialog .p-dialog-header, 
+body.dark-mode .p-dialog .p-dialog-footer, 
+body.dark-mode .p-sidebar {
+  background: rgba(30, 30, 30, var(--panel-opacity)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Utilities (Yardımcı Sınıflar) Overrides */
+body.dark-mode .surface-ground {
+  background-color: var(--surface-ground) !important;
+}
+body.dark-mode .surface-card, body.dark-mode .surface-0, body.dark-mode .bg-white {
+  background-color: var(--surface-card) !important;
+}
+body.dark-mode .text-900, body.dark-mode .text-800, body.dark-mode .text-700 {
+  color: #f8fafc !important;
+}
+body.dark-mode .text-600, body.dark-mode .text-500 {
+  color: #cbd5e1 !important;
+}
+
+/* =========================================================================
+   TÜM PANELLER VE KARTLAR İÇİN CAM EFEKTİ (Glassmorphism for all panels)
+   ========================================================================= */
+.surface-card, .municipal-card, .p-dialog .p-dialog-content, .p-dialog .p-dialog-header, .p-dialog .p-dialog-footer, .p-sidebar {
+  background: rgba(255, 255, 255, var(--panel-opacity)) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  transition: all 0.4s ease !important;
+}
+
+/* Sidebar (Ayarlar vb) için z-index garantisi ve arka plan */
+.p-sidebar {
+  z-index: 1100 !important; /* Sidebar üstte kalmalı */
+}
+.p-sidebar-mask {
+  z-index: 1099 !important;
+}
+
+.surface-card:hover, .municipal-card:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Tabloların da aynı efekte sahip olabilmesi için */
+.p-datatable .p-datatable-wrapper {
+  background: rgba(255, 255, 255, var(--panel-opacity)) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  transition: all 0.4s ease !important;
+}
+
+.p-datatable:hover .p-datatable-wrapper {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* İnteraktif alanlar (Input, Dropdown) için Şeffaflık */
+.p-inputtext, .p-dropdown, .p-multiselect, p-calendar .p-inputtext {
+  background: rgba(255, 255, 255, var(--panel-opacity)) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Görünürlüğü artırmak için border rengi güncellendi */
+  transition: background 0.3s ease, border-color 0.3s ease !important;
+}
+
+.p-inputtext:hover, .p-dropdown:not(.p-disabled):hover, .p-multiselect:not(.p-disabled):hover, p-calendar .p-inputtext:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.p-inputtext:focus, .p-dropdown:not(.p-disabled).p-focus, .p-multiselect:not(.p-disabled).p-focus, p-calendar .p-inputtext:focus {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: var(--primary-color) !important;
+}
+
+
+/* =========================================================================
+   GENEL GÖVDE VE ARKA PLAN (Body & Global Background)
+   ========================================================================= */
+/* Uygulamanın tüm sayfalarındaki temel zemin rengini ve varsayılan metin tipini uygular */
+body {
+  font-family: var(--font-family);
+  margin: 0;
+  background-color: var(--surface-ground);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================================
+   GİRİŞ (LOGIN) EKRANI BİLEŞENLERİ
+   ========================================================================= */
+/* Giriş ekranının arkasındaki animasyonlu ve oval geçişli yeşil/mavi arka planı oluşturur */
+.login-bg {
+  background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(0, 86, 160, 0.09) 0%, rgba(255, 255, 255, 0) 70%);
+    top: -50px;
+    left: -50px;
+    border-radius: 50%;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(0, 135, 83, 0.07) 0%, rgba(255, 255, 255, 0) 70%);
+    bottom: -100px;
+    right: -100px;
+    border-radius: 50%;
+  }
+}
+
+/* Giriş ekranındaki kullanıcı adı ve şifre kutusunu barındıran beyaz şeffaf cam (Glassmorphism) efektli kart */
+.login-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.04), 0 10px 15px -3px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Giriş sayfasındaki logoların veya büyük ikonların yeşil/mavi renk geçişini (gradient) sağlar */
+.login-icon {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* Herhangi bir yazının (text) yeşil/mavi renk geçişine (gradient) sahip olmasını sağlar */
+.text-gradient {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =========================================================================
+   PRİMENG (UI KÜTÜPHANESİ) ÖZELLEŞTİRMELERİ
+   ========================================================================= */
+/* Tüm PrimeNG butonlarının (p-button) varsayılan görünümünü ezer ve yukarıdaki :root değişkenlerini uygular */
+.p-button {
+  border-radius: var(--btn-border-radius) !important;
+  font-weight: var(--btn-font-weight) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  
+  /* Birincil (Onay/Kaydet) butonlarının tasarımı ve havaya kalkma (hover) animasyonları */
+  &.p-button-primary {
+    background: var(--btn-primary-bg) !important;
+    border: none !important;
+    color: var(--btn-primary-text) !important;
+    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.2), 0 2px 4px -1px rgba(34, 197, 94, 0.1) !important;
+    
+    &:hover {
+      background: var(--btn-primary-hover-bg) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3), 0 4px 6px -2px rgba(34, 197, 94, 0.15) !important;
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  /* İkincil (İptal/Kapat) butonlarının tasarımı */
+  &.p-button-secondary {
+    background: var(--btn-secondary-bg) !important;
+    border: 1px solid var(--btn-secondary-border) !important;
+    color: var(--btn-secondary-text) !important;
+    
+    &:hover {
+      background: var(--btn-secondary-hover-bg) !important;
+      border-color: #94a3b8 !important;
+      color: var(--text-color) !important;
+    }
+  }
+}
+
+/* Arama çubukları ve formlardaki metin giriş kutularının (p-inputtext) tasarımı */
+.p-inputtext {
+  border-radius: var(--input-border-radius) !important;
+  border: 1px solid var(--input-border-color) !important;
+  padding: var(--input-padding) !important;
+  transition: all 0.2s ease !important;
+  
+  /* Form elemanına tıklandığındaki mavi/yeşil parlama (gölge) efekti */
+  &:focus {
+    border-color: var(--input-focus-border-color) !important;
+    box-shadow: 0 0 0 3px rgba(0, 135, 83, 0.15) !important;
+  }
+}
+
+/* =========================================================================
+   MENÜ VE DÜZEN (Layout & Navigation)
+   ========================================================================= */
+/* Ekranın en üstünde yer alan ve kullanıcı profili gibi bilgileri gösteren yatay menünün (Navbar) tasarımı */
+.navbar-bg {
+  background: rgba(15, 23, 42, var(--panel-opacity)) !important;
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(30, 41, 59, 0.5) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  color: var(--navbar-text) !important;
+  transition: all 0.3s ease !important;
+}
+.navbar-bg:hover {
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+/* Ekranın solunda yer alan, sayfalar arası geçişi sağlayan dikey menünün (Sidebar) dış çerçevesi */
+.sidebar-bg {
+  background: rgba(15, 23, 42, var(--panel-opacity)) !important;
+  backdrop-filter: blur(15px);
+  border-right: 1px solid rgba(30, 41, 59, 0.5) !important;
+  transition: all 0.3s ease !important;
+}
+.sidebar-bg:hover {
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+/* Sol dikey menüdeki tıklanabilir bağlantıların (link) varsayılan görünümü */
+.sidebar-menu-item {
+  background-color: var(--sidebar-menu-bg) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: var(--sidebar-menu-border-radius) !important;
+}
+
+/* Fare ile sol menü bağlantısının üzerine gelindiğinde oluşan sağa doğru kayma ve renk değişimi efekti */
+.sidebar-menu-item:hover {
+  background-color: var(--sidebar-menu-hover-bg) !important;
+  transform: translateX(4px);
+}
+
+/* Bulunduğunuz sayfanın sol menüdeki link kutusunun daha koyu renkte (aktif olarak) görünmesini sağlar */
+.sidebar-menu-item.active-menu-item {
+  background-color: var(--sidebar-menu-active-bg) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.sidebar-menu-item.active-sub-menu-item {
+  background-color: var(--sidebar-menu-active-bg) !important;
+  border-left: 3px solid #fff;
+  opacity: 0.9;
+}
+
+/* =========================================================================
+   TABLOLAR VE VERİ GÖSTERİMİ (Data Display & Tables)
+   ========================================================================= */
+/* PrimeNG Tablolarının (p-datatable) başlık ve satır tasarımları */
+.p-datatable {
+  /* Tablonun en üstündeki kolon başlıklarının (Ad Soyad, Görev vb.) tasarımı */
+  .p-datatable-thead > tr > th {
+    background: var(--table-header-bg) !important;
+    color: var(--table-header-text) !important;
+    font-weight: var(--table-header-font-weight) !important;
+    border-bottom: 2px solid var(--table-border-color) !important;
+  }
+  
+  /* Tablonun içindeki veri satırlarının üzerine fareyle gelindiğinde satırın renginin hafifçe değişmesi efekti */
+  .p-datatable-tbody > tr {
+    transition: background-color 0.15s ease !important;
+    
+    &:hover {
+      background-color: var(--table-row-hover-bg) !important;
+    }
+  }
+}
+
+/* =========================================================================
+   KARTLAR VE ETİKETLER (Cards & Badges)
+   ========================================================================= */
+/* Dashboard (Özet ekranı) ve rapor listelerinde verilerin içinde gösterildiği gölgeli beyaz kutucuklar */
+.municipal-card {
+  background: var(--surface-card);
+  border: 1px solid var(--card-border-color);
+  border-radius: var(--card-border-radius);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.01);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Fare ile kartın üzerine gelindiğinde kartın hafifçe yukarı kalkması efekti */
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -3px rgba(0,0,0,0.04), 0 4px 6px -2px rgba(0,0,0,0.02);
+  }
+}
+
+/* Tablolarda "Taslak" veya "Reddedildi" durumlarını gösteren turuncu/sarı renkli uyarı etiketi (badge) */
+.badge-draft {
+  background-color: #fef3c7;
+  color: #d97706;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* Tablolarda "Onaylandı" veya "Başarılı" durumlarını gösteren yeşil renkli olumlu bilgi etiketi (badge) */
+.badge-saved {
+  background-color: #dcfce7;
+  color: #15803d;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* =========================================================================
+   COMIC STYLE BUTTONS (Global Override)
+   ========================================================================= */
+.p-button:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only) {
+  font-weight: bold !important;
+  border: 2px solid #000 !important;
+  border-radius: 10px !important;
+  box-shadow: 4px 4px 0px #000 !important;
+  transition: all 0.2s ease !important;
+}
+
+.p-button:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only):active {
+  box-shadow: none !important;
+  transform: translateY(4px) !important;
+}
+
+/* Hover durumları (Her renk için özel) */
+/* Varsayılan / Primary */
+.p-button:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only):not(.p-button-secondary):not(.p-button-success):not(.p-button-danger):not(.p-button-warning):not(.p-button-info):hover {
+  background-color: #fff !important;
+  color: var(--primary-color, #10b981) !important;
+  border-color: var(--primary-color, #10b981) !important;
+  box-shadow: 4px 4px 0px var(--primary-color, #10b981) !important;
+}
+
+/* Success */
+.p-button.p-button-success:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only):hover {
+  background-color: #fff !important;
+  color: #22c55e !important;
+  border-color: #22c55e !important;
+  box-shadow: 4px 4px 0px #22c55e !important;
+}
+
+/* Danger */
+.p-button.p-button-danger:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only):hover {
+  background-color: #fff !important;
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  box-shadow: 4px 4px 0px #ef4444 !important;
+}
+
+/* Warning */
+.p-button.p-button-warning:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only):hover {
+  background-color: #fff !important;
+  color: #f59e0b !important;
+  border-color: #f59e0b !important;
+  box-shadow: 4px 4px 0px #f59e0b !important;
+}
+
+/* Secondary */
+.p-button.p-button-secondary:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only):hover {
+  background-color: #fff !important;
+  color: #64748b !important;
+  border-color: #64748b !important;
+  box-shadow: 4px 4px 0px #64748b !important;
+}
+
+/* Info */
+.p-button.p-button-info:not(.p-button-text):not(.p-button-rounded):not(.p-button-icon-only):hover {
+  background-color: #fff !important;
+  color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 4px 4px 0px #3b82f6 !important;
+}
+
+/* =========================================================================
+   CUSTOM RANGE SLIDER (Uiverse)
+   ========================================================================= */
+.PB-range-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 5px;
+  background: #D5DBE1;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.PB-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: var(--primary-color, #10b981);
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+.PB-range-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0px 0px 0px 8px rgba(16, 185, 129, 0.2);
+  transition: 0.3s ease-in-out;
+}
+
+.PB-range-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: var(--primary-color, #10b981);
+  cursor: pointer;
+}
+
+/* =========================================================================
+   CUSTOM HOVER MENU (Uiverse)
+   ========================================================================= */
+.custom-hover-menu {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333333;
+  width: fit-content;
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 150px;
+  position: relative;
+  z-index: 9999;
+}
+.custom-hover-menu a {
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.custom-hover-menu .link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  width: 100%;
+  box-sizing: border-box;
+}
+.custom-hover-menu .link::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--primary-color, #10b981);
+  z-index: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.custom-hover-menu .link span {
+  position: relative;
+  z-index: 1;
+}
+.custom-hover-menu .link svg {
+  position: relative;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  fill: #333333;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.custom-hover-menu .item {
+  position: relative;
+  width: 100%;
+}
+.custom-hover-menu .item .submenu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  top: 100%;
+  border-radius: 0 0 8px 8px;
+  left: 0;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 250px;
+  border: 1px solid #cccccc;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 9999;
+  pointer-events: none;
+  list-style: none;
+  background: #ffffff;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+.custom-hover-menu .item:hover .submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  border-top: transparent;
+  border-color: var(--primary-color, #10b981);
+}
+.custom-hover-menu .item:hover .link {
+  color: #ffffff;
+  border-radius: 8px 8px 0 0;
+  border-color: var(--primary-color, #10b981);
+}
+.custom-hover-menu .item:hover .link::after {
+  transform: scaleX(1);
+  transform-origin: right;
+}
+.custom-hover-menu .item:hover .link svg {
+  fill: #ffffff;
+  transform: rotate(-180deg);
+}
+.custom-hover-menu .submenu .submenu-item {
+  width: 100%;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.custom-hover-menu .submenu .submenu-link {
+  display: block;
+  padding: 10px 16px;
+  width: 100%;
+  position: relative;
+  text-align: center;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+  background: transparent;
+  box-sizing: border-box;
+  color: #333333;
+}
+.custom-hover-menu .submenu .submenu-item:last-child .submenu-link {
+  border-bottom: none;
+}
+.custom-hover-menu .submenu .submenu-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scaleX(0);
+  width: 100%;
+  height: 100%;
+  background-color: var(--primary-color, #10b981);
+  z-index: 0;
+  transform-origin: left;
+  transition: transform 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.custom-hover-menu .submenu .submenu-link span {
+  position: relative;
+  z-index: 1;
+}
+.custom-hover-menu .submenu .submenu-link:hover:before {
+  transform: scaleX(1);
+  transform-origin: right;
+}
+.custom-hover-menu .submenu .submenu-link:hover {
+  color: #ffffff;
+}
+
+
+/* Dropdown (Durum) filtre seçili olduğunda Lacivert */
+body.dark-mode .has-value-dropdown .p-dropdown {
+  background-color: #1e3a8a !important;
+  color: #ffffff !important;
+}
+body.dark-mode .has-value-dropdown .p-dropdown .p-dropdown-label,
+body.dark-mode .has-value-dropdown .p-dropdown .p-dropdown-trigger {
+  color: #ffffff !important;
+}
+
+
+
+/* Klavyeyle üstüne gelinen veya son tıklanan (p-focus) ögelerin karanlık moddaki arka planı (Koyu Gri) */
+body.dark-mode .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-focus:not(.p-highlight),
+body.dark-mode .p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-focus:not(.p-highlight),
+body.dark-mode .p-treeselect-panel .p-treenode-content.p-focus:not(.p-highlight) {
+  background-color: #3f3f46 !important;
+  color: #ffffff !important;
+}
+
+/* Seçili (highlight) ve son tıklanan ögeler (Lacivert) */
+body.dark-mode .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight.p-focus,
+body.dark-mode .p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight.p-focus,
+body.dark-mode .p-treeselect-panel .p-treenode-content.p-highlight.p-focus {
+  background-color: #1e3a8a !important; 
+  color: #ffffff !important;
+}
+
+
+.admin-hide-tabs .p-tabview-nav-container { display: none !important; }
+body.dark-mode .p-tree { background-color: transparent !important; color: var(--text-color) !important; }
+body.dark-mode .p-tree .p-tree-header, body.dark-mode .p-treeselect-panel .p-treeselect-header { background-color: #27272a !important; border-color: #3f3f46 !important; }

@@ -1,0 +1,21 @@
+<!-- Global Arka Plan -->
+<div class="fixed top-0 left-0 w-full h-full" style="z-index: -2;">
+  <div *ngFor="let bg of backgroundImages; let i = index"
+       class="absolute top-0 left-0 w-full h-full"
+       style="transition: opacity 2s ease-in-out;"
+       [ngStyle]="{
+         'background-image': 'url(' + bg + ')',
+         'background-size': 'cover',
+         'background-position': 'center',
+         'background-attachment': 'fixed',
+         'opacity': currentBgIndex === i ? '1' : '0'
+       }">
+  </div>
+  <!-- Şeffaf siyah bir katman atarak okunaklılığı artıralım -->
+  <div class="absolute top-0 left-0 w-full h-full" style="background: rgba(0, 0, 0, 0.45);"></div>
+</div>
+
+<!-- Uygulama İçeriği -->
+<div class="relative w-full h-full z-1" style="z-index: 1;">
+  <router-outlet></router-outlet>
+</div>

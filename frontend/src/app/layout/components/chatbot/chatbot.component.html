@@ -1,0 +1,60 @@
+<!-- Chat Button (Floating Action Button) -->
+<button pButton pRipple 
+    icon="pi pi-comments" 
+    class="p-button-rounded p-button-info shadow-4 chatbot-fab" 
+    (click)="toggleChat()"
+    *ngIf="!displaySidebar">
+</button>
+
+<!-- Sidebar for Chatbot -->
+<p-sidebar [(visible)]="displaySidebar" position="right" [modal]="false" [dismissible]="false" styleClass="w-full md:w-25rem chatbot-sidebar shadow-4" [showCloseIcon]="true">
+    <ng-template pTemplate="header">
+        <div class="flex align-items-center justify-content-between w-full pr-2">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-reddit text-xl text-primary"></i>
+                <span class="font-bold text-lg">AI Asistan</span>
+            </div>
+            <button pButton pRipple type="button" [icon]="isSoundEnabled ? 'pi pi-volume-up' : 'pi pi-volume-off'" 
+                    class="p-button-rounded p-button-text p-button-sm p-button-secondary" 
+                    (click)="toggleSound()"
+                    [pTooltip]="isSoundEnabled ? 'Sesi Kapat' : 'Sesi Aç'" tooltipPosition="bottom">
+            </button>
+        </div>
+    </ng-template>
+
+    <div class="flex flex-column h-full">
+        <!-- Messages Area -->
+        <div #chatScrollContainer class="flex-grow-1 overflow-y-auto p-3 chat-messages-container border-round bg-gray-50 dark:bg-gray-900 mb-3" style="max-height: calc(100vh - 160px);">
+            <div *ngFor="let msg of messages" class="flex mb-3" [ngClass]="msg.isUser ? 'justify-content-end' : 'justify-content-start'">
+                <div *ngIf="!msg.isUser" class="mr-2 mt-1">
+                    <div class="bg-primary text-white border-circle flex align-items-center justify-content-center" style="width: 2rem; height: 2rem;">
+                        <i class="pi pi-reddit"></i>
+                    </div>
+                </div>
+
+                <div class="p-3 border-round shadow-1 max-w-20rem text-sm" 
+                     [ngClass]="msg.isUser ? 'surface-200 text-color border-round-bottom-right-none' : 'surface-0 text-color border-round-top-left-none'">
+                    {{ msg.text }}
+                </div>
+            </div>
+
+            <!-- Typing indicator -->
+            <div *ngIf="isLoading" class="flex mb-3 justify-content-start">
+                <div class="mr-2 mt-1">
+                    <div class="bg-primary text-white border-circle flex align-items-center justify-content-center" style="width: 2rem; height: 2rem;">
+                        <i class="pi pi-reddit"></i>
+                    </div>
+                </div>
+                <div class="p-3 border-round shadow-1 bg-white border-round-top-left-none text-500">
+                    <i class="pi pi-spin pi-spinner text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="mt-auto pt-3 border-top-1 surface-border flex gap-2">
+            <input type="text" pInputText [(ngModel)]="userMessage" (keyup.enter)="sendMessage()" placeholder="Bana bir şey sorun..." class="flex-grow-1" [disabled]="isLoading" />
+            <button pButton icon="pi pi-send" (click)="sendMessage()" [disabled]="isLoading || !userMessage.trim()"></button>
+        </div>
+    </div>
+</p-sidebar>

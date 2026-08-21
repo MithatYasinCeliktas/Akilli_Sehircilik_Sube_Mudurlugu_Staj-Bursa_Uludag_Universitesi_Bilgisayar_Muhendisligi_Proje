@@ -1,0 +1,40 @@
+.chatbot-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 4rem;
+    height: 4rem;
+    z-index: 9999;
+    transition: all 0.3s;
+    
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+:host ::ng-deep {
+    .chatbot-sidebar {
+        top: 65px !important;
+        height: calc(100vh - 65px) !important;
+        .p-sidebar-content {
+            padding-bottom: 0 !important;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+    }
+}
+
+.chat-messages-container {
+    scroll-behavior: smooth;
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--surface-300);
+        border-radius: 3px;
+    }
+}

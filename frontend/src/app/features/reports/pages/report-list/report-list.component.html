@@ -1,0 +1,459 @@
+<style>
+::ng-deep .scrollable-multiselect .p-multiselect-label {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  padding-bottom: 4px !important;
+  /* Scrollbar styling for horizontal scroll */
+  scrollbar-width: thin;
+}
+::ng-deep .scrollable-multiselect .p-multiselect-label::-webkit-scrollbar {
+  height: 6px;
+}
+::ng-deep .scrollable-multiselect .p-multiselect-label::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::ng-deep .scrollable-multiselect .p-multiselect-token {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+</style>
+<div class="card surface-card p-4 shadow-1 border-round">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold m-0">Faaliyet Raporları</h2>
+        <div class="flex gap-2">
+      <button
+        pButton
+        label="Gelen Teklifler"
+        icon="pi pi-inbox"
+        class="p-button-warning p-button-outlined"
+        (click)="openProposalsDialog()"
+      ></button>
+      
+      <button
+        *ngIf="canImportExcel"
+        pButton
+        label="Excel Şablonu İndir"
+        icon="pi pi-download"
+        class="p-button-secondary p-button-outlined"
+        (click)="downloadTemplate()"
+      ></button>
+
+      <button
+        *ngIf="canImportExcel"
+        pButton
+        label="Excel İçe Aktar"
+        icon="pi pi-upload"
+        class="p-button-success p-button-outlined"
+        (click)="openImportDialog()"
+      ></button>
+
+      <button
+        *ngIf="isAdmin || isManager"
+        pButton
+        label="Seçilenleri Birleştir"
+        icon="pi pi-clone"
+        class="p-button-info p-button-outlined"
+        (click)="openMergeDialog()"
+        [disabled]="(activeTabId === 'unit' ? (!selectedUnitYapilan && !selectedUnitYapilacak && !selectedUnitKoordinasyon || ((selectedUnitYapilan.length || 0) + (selectedUnitYapilacak.length || 0) + (selectedUnitKoordinasyon.length || 0)) < 2) : (!selectedReports || selectedReports.length < 2))"
+      ></button>
+
+      <button
+        pButton
+        label="Excel İndir"
+        icon="pi pi-file-excel"
+        class="p-button-success p-button-outlined"
+        (click)="exportExcel()"
+      ></button>
+
+      <button
+        *ngIf="canCreateReport"
+        pButton
+        label="Yeni Rapor Oluştur"
+        icon="pi pi-plus"
+        class="p-button-primary"
+        (click)="createReport()"
+      ></button>
+    </div>
+  </div>
+
+  <p-tabView [(activeIndex)]="activeTabIndex" (onChange)="onTabChange($event)" [styleClass]="isAdmin ? 'admin-hide-tabs' : ''">
+    <p-tabPanel *ngFor="let tab of tabs" [header]="tab.label" [leftIcon]="'pi ' + tab.icon">
+      
+      <ng-container *ngIf="tab.id !== 'shared' && tab.id !== 'unit' && tab.id === activeTabId">
+         <ng-container *ngTemplateOutlet="reportTemplate"></ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="tab.id === 'shared'">
+         <p-table [value]="sharedReports" [(selection)]="selectedSharedReports" [loading]="sharedLoading" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                <th>Yıl / Ay</th>
+                <th>Paylaşan</th>
+                <th>Not</th>
+                <th>Tarih</th>
+                <th>İşlemler</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-share>
+              <tr>
+                <td><p-tableCheckbox [value]="share"></p-tableCheckbox></td>
+                <td>{{ share.report?.year }} / {{ share.report?.month }}</td>
+                <td>{{ share.requester?.full_name }}</td>
+                <td>{{ share.manager_note || '-' }}</td>
+                <td>{{ share.updated_at | date:'dd.MM.yyyy HH:mm' }}</td>
+                <td>
+                  <div class="flex gap-2">
+                    <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-primary" pTooltip="Görüntüle" (click)="editReport(share.report_id)"></button>
+                    <button pButton icon="pi pi-file-excel" class="p-button-rounded p-button-text p-button-success" pTooltip="Excel İndir" (click)="exportExcelShared(share.report_id)"></button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5" class="text-center p-4">Henüz sizinle paylaşılan bir faaliyet raporu bulunmamaktadır.</td>
+              </tr>
+            </ng-template>
+         </p-table>
+      </ng-container>
+
+      <ng-container *ngIf="tab.id === 'unit'">
+         <ng-container *ngTemplateOutlet="unitReportTemplate"></ng-container>
+      </ng-container>
+
+    </p-tabPanel>
+  </p-tabView>
+
+  <ng-template #reportTemplate>
+      <div class="grid mb-3 mt-3" style="position: relative; z-index: 99;">
+        <div class="col-12 md:col-6 lg:col-auto flex gap-4">
+          <p-inputNumber [(ngModel)]="filter.year" [useGrouping]="false" placeholder="Yıl" [style]="{'width':'85px'}" [inputStyle]="{'width':'100%'}" inputStyleClass="p-inputtext-sm" (ngModelChange)="onFilterChange()" (onClear)="onFilterChange()" [showClear]="true"></p-inputNumber>
+          <p-inputNumber [(ngModel)]="filter.month" [min]="1" [max]="12" placeholder="Ay" [style]="{'width':'85px'}" [inputStyle]="{'width':'100%'}" inputStyleClass="p-inputtext-sm" (ngModelChange)="onFilterChange()" (onClear)="onFilterChange()" [showClear]="true"></p-inputNumber>
+        </div>
+        <div class="col-12 md:col-6 lg:col-3">
+          <div class="border-round-lg border-1 border-400 shadow-1 p-1 w-full flex align-items-stretch surface-0">
+              <textarea pInputTextarea [autoResize]="true" rows="1" class="w-full surface-0 pl-3 pt-2 text-base outline-none border-none m-0 text-color" style="max-height: 120px; min-height: 42px; resize: none; overflow-y: auto;" placeholder="Arama metni..." [(ngModel)]="filter.searchText" (keydown.enter)="$event.preventDefault(); onFilterChange()"></textarea>
+              <input type="button" value="Ara" class="bg-blue-500 px-3 py-2 border-round-right-lg text-white font-semibold hover:bg-blue-800 transition-colors cursor-pointer border-none" (click)="onFilterChange()">
+          </div>
+        </div>
+        <div class="col-12 md:col-2 lg:col-2">
+            <p-dropdown [options]="statusOptions" [(ngModel)]="filter.status" optionLabel="label" optionValue="value" placeholder="Durum Seçin" (onChange)="onFilterChange()" class="w-full" styleClass="w-full" [showClear]="true"></p-dropdown>
+        </div>
+        <div class="col-12 md:col-6 lg:col-3">
+          <p-calendar [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Tarih Aralığı" class="w-full" styleClass="w-full" (ngModelChange)="onDateChange()" [showClear]="true" dateFormat="yy-mm-dd"></p-calendar>
+        </div>
+      </div>
+
+      <div class="grid mb-3" style="position: relative; z-index: 98;">
+        <div class="col-12 md:col-6 lg:col-4" *ngIf="activeTabId === 'all'">
+          <p-treeSelect
+            [options]="userTree"
+            [(ngModel)]="selectedUserNodes"
+            selectionMode="multiple"
+            placeholder="Oluşturan Kişi(ler)"
+            (onNodeSelect)="onFilterChange()"
+            (onNodeUnselect)="onFilterChange()"
+            class="w-full"
+            styleClass="w-full scrollable-multiselect" display="chip" [metaKeySelection]="false"
+            appendTo="body"
+          ></p-treeSelect>
+        </div>
+        <div class="col-12" [ngClass]="activeTabId === 'all' ? 'md:col-6 lg:col-6' : 'md:col-6 lg:col-8'">
+          <p-multiSelect [options]="institutionOptions" [(ngModel)]="selectedInstitutions" defaultLabel="Kurum/Kuruluşlar (Kord. İçin)" (onChange)="onFilterChange()" class="w-full" styleClass="w-full scrollable-multiselect" display="chip" appendTo="body" [maxSelectedLabels]="100"></p-multiSelect>
+        </div>
+        <div class="col-12 md:col-2 lg:col-2">
+          <p-inputNumber [(ngModel)]="tempPageSize" [min]="5" [max]="1000" [showButtons]="true" placeholder="Kayıt Sayısı" (keyup.enter)="applyPageSize()" class="w-full" styleClass="w-full"></p-inputNumber>
+        </div>
+      </div>
+
+      <p-table [(selection)]="selectedReports" dataKey="id" [value]="reports" [loading]="loading" [paginator]="true" [rows]="filter.pageSize || 10" [totalRecords]="totalRecords" [lazy]="true" (onPage)="onPageChange($event)" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+            <th>ID</th>
+            <th>Başlık</th>
+            <th>Yıl / Ay</th>
+            <th>Oluşturan</th>
+            <th>Durum</th>
+            <th>İşlemler</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-report>
+          <tr>
+            <td><p-tableCheckbox [value]="report"></p-tableCheckbox></td>
+            <td>{{ report.id }}</td>
+            <td>{{ report.title }}</td>
+            <td>{{ report.year }} / {{ report.month }}</td>
+            <td>{{ report.user?.full_name || 'Kullanıcı #' + (report.user_id || report.userId) }}</td>
+            <td>
+              <span class="badge p-2 border-round text-xs font-bold" [ngClass]="{'bg-orange-100 text-orange-700': report.status === 'DRAFT', 'bg-green-100 text-green-700': report.status === 'SAVED'}">
+                {{ report.status === 'DRAFT' ? 'TASLAK' : 'KAYDEDİLDİ' }}
+              </span>
+            </td>
+            <td>
+                              <div class="flex gap-2">
+                  <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-warning" pTooltip="Düzenle" (click)="editReport(report.id)"></button>
+                  <button *ngIf="canShareReport(report)" pButton icon="pi pi-share-alt" class="p-button-rounded p-button-text p-button-info" pTooltip="Paylaş" (click)="shareReport(report.id)"></button>
+                  <button pButton icon="pi pi-file-pdf" class="p-button-rounded p-button-text p-button-danger" pTooltip="PDF İndir" (click)="exportPdf(report.id)"></button>
+                </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+  </ng-template>
+
+  <ng-template #unitReportTemplate>
+      <div class="grid mb-3 mt-3" style="position: relative; z-index: 99;">
+        <!-- Satır 1 -->
+        <div class="col-12 md:col-6 lg:col-3 flex gap-2">
+          <p-inputNumber [(ngModel)]="filter.year" [useGrouping]="false" placeholder="Yıl" [style]="{'width':'100%'}" [inputStyle]="{'width':'100%'}" inputStyleClass="p-inputtext-sm w-full" (ngModelChange)="onFilterChange()" (onClear)="onFilterChange()" [showClear]="true" class="w-full"></p-inputNumber>
+          <p-inputNumber [(ngModel)]="filter.month" [min]="1" [max]="12" placeholder="Ay" [style]="{'width':'100%'}" [inputStyle]="{'width':'100%'}" inputStyleClass="p-inputtext-sm w-full" (ngModelChange)="onFilterChange()" (onClear)="onFilterChange()" [showClear]="true" class="w-full"></p-inputNumber>
+        </div>
+        <div class="col-12 md:col-6 lg:col-5">
+          <p-calendar [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Tarih Aralığı" class="w-full" styleClass="w-full" (ngModelChange)="onDateChange()" [showClear]="true" dateFormat="yy-mm-dd"></p-calendar>
+        </div>
+        <div class="col-12 md:col-12 lg:col-4">
+            <p-dropdown [options]="statusOptions" [(ngModel)]="filter.status" optionLabel="label" optionValue="value" placeholder="Durum Seçin" (onChange)="onFilterChange()" class="w-full" styleClass="w-full" [showClear]="true"></p-dropdown>
+        </div>
+
+        <!-- Satır 2 -->
+        <div class="col-12 md:col-4 lg:col-4">
+            <p-multiSelect [options]="subordinateOptions" [(ngModel)]="selectedSubordinates" defaultLabel="Yazan Kişiler (Astlar)" (onChange)="onFilterChange()" class="w-full" styleClass="w-full scrollable-multiselect" display="chip" appendTo="body" [maxSelectedLabels]="100"></p-multiSelect>
+        </div>
+        <div class="col-12 md:col-4 lg:col-4">
+            <p-multiSelect [options]="institutionOptions" [(ngModel)]="selectedInstitutions" defaultLabel="Kurum/Kuruluşlar (Kord. İçin)" (onChange)="onFilterChange()" class="w-full" styleClass="w-full scrollable-multiselect" display="chip" appendTo="body" [maxSelectedLabels]="100"></p-multiSelect>
+        </div>
+        <div class="col-12 md:col-4 lg:col-4">
+            <p-dropdown [options]="categoryTypeOptions" [(ngModel)]="selectedCategoryType" optionLabel="label" optionValue="value" placeholder="Satır Türü" class="w-full" styleClass="w-full" [showClear]="true"></p-dropdown>
+        </div>
+
+        <!-- Satır 3 -->
+        <div class="col-12 lg:col-8">
+          <div class="border-round-lg border-1 border-400 shadow-1 p-1 w-full flex align-items-stretch surface-0">
+              <textarea pInputTextarea [autoResize]="true" rows="1" class="w-full surface-0 pl-3 pt-2 text-base outline-none border-none m-0 text-color" style="max-height: 120px; min-height: 42px; resize: none; overflow-y: auto;" placeholder="Arama metni..." [(ngModel)]="filter.searchText" (keydown.enter)="$event.preventDefault(); onFilterChange()"></textarea>
+              <input type="button" value="Ara" class="bg-blue-500 px-4 py-2 border-round-right-lg text-white font-semibold hover:bg-blue-800 transition-colors cursor-pointer border-none" (click)="onFilterChange()">
+          </div>
+        </div>
+        <div class="col-12 lg:col-4">
+          <p-inputNumber [(ngModel)]="tempPageSize" [min]="5" [max]="1000" [showButtons]="true" placeholder="Kayıt Sayısı" (keyup.enter)="applyPageSize()" class="w-full" styleClass="w-full"></p-inputNumber>
+        </div>
+      </div>
+
+      
+      
+
+  <h3 class="mt-4 mb-2" *ngIf="!selectedCategoryType || selectedCategoryType === 'YAPILAN_ISLER'">Yapılan İşler</h3>
+        <p-table *ngIf="!selectedCategoryType || selectedCategoryType === 'YAPILAN_ISLER'" [(selection)]="selectedUnitYapilan" dataKey="id" [value]="unitReportYapilan" [loading]="loading" [paginator]="false" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                <th>Yıl / Ay</th>
+              <th>İçerik</th>
+              <th>Ekleyen</th>
+              <th>Durum</th>
+              <th>Tarih</th>
+                <th style="width: 5rem; text-align: center">İşlemler</th>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><p-tableCheckbox [value]="item"></p-tableCheckbox></td>
+                <td>{{ item.report_year }} / {{ item.report_month }}</td>
+              <td>
+                  <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
+                      {{ item.content }}
+                  </div>
+              </td>
+              <td>{{ item.creator?.full_name }}</td>
+              <td>
+                <span class="badge p-1 border-round text-xs font-bold" [ngClass]="{'bg-yellow-100 text-yellow-700': item.status === 'PENDING', 'bg-green-100 text-green-700': item.status === 'APPROVED', 'bg-red-100 text-red-700': item.status === 'REJECTED'}">
+                  {{ item.status === 'PENDING' ? 'ONAY BEKLİYOR' : item.status === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ' }}
+                </span>
+              </td>
+              <td>{{ item.updated_at | date:'dd.MM.yyyy HH:mm' }}</td>
+                <td class="text-center">
+                  <button pButton pRipple type="button" icon="pi pi-external-link" class="p-button-rounded p-button-text p-button-sm" (click)="goToReportItem(item)" pTooltip="Orijinal Rapora Git" tooltipPosition="top"></button>
+                </td>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center p-4">Henüz satır bulunamadı.</td></tr>
+          </ng-template>
+        </p-table>
+
+
+  <h3 class="mt-4 mb-2" *ngIf="!selectedCategoryType || selectedCategoryType === 'YAPILACAK_ISLER'">Yapılacak İşler</h3>
+        <p-table *ngIf="!selectedCategoryType || selectedCategoryType === 'YAPILACAK_ISLER'" [(selection)]="selectedUnitYapilacak" dataKey="id" [value]="unitReportYapilacak" [loading]="loading" [paginator]="false" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                <th>Yıl / Ay</th>
+              <th>İçerik</th>
+              <th>Ekleyen</th>
+              <th>Durum</th>
+              <th>Tarih</th>
+                <th style="width: 5rem; text-align: center">İşlemler</th>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><p-tableCheckbox [value]="item"></p-tableCheckbox></td>
+                <td>{{ item.report_year }} / {{ item.report_month }}</td>
+              <td>
+                  <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
+                      {{ item.content }}
+                  </div>
+              </td>
+              <td>{{ item.creator?.full_name }}</td>
+              <td>
+                <span class="badge p-1 border-round text-xs font-bold" [ngClass]="{'bg-yellow-100 text-yellow-700': item.status === 'PENDING', 'bg-green-100 text-green-700': item.status === 'APPROVED', 'bg-red-100 text-red-700': item.status === 'REJECTED'}">
+                  {{ item.status === 'PENDING' ? 'ONAY BEKLİYOR' : item.status === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ' }}
+                </span>
+              </td>
+              <td>{{ item.updated_at | date:'dd.MM.yyyy HH:mm' }}</td>
+                <td class="text-center">
+                  <button pButton pRipple type="button" icon="pi pi-external-link" class="p-button-rounded p-button-text p-button-sm" (click)="goToReportItem(item)" pTooltip="Orijinal Rapora Git" tooltipPosition="top"></button>
+                </td>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center p-4">Henüz satır bulunamadı.</td></tr>
+          </ng-template>
+        </p-table>
+
+
+  <h3 class="mt-5 mb-2" *ngIf="!selectedCategoryType || selectedCategoryType === 'KORDINASYON_GEREKTIREN_ISLER'">Koordinasyon Gerektiren İşler</h3>
+        <p-table *ngIf="!selectedCategoryType || selectedCategoryType === 'KORDINASYON_GEREKTIREN_ISLER'" [(selection)]="selectedUnitKoordinasyon" dataKey="id" [value]="unitReportKoordinasyon" [loading]="loading" [paginator]="false" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                <th>Yıl / Ay</th>
+              <th>İçerik</th>
+              <th>İlgili Kurum(lar)</th>
+              <th>Çözüm Önerileri</th>
+              <th>Ekleyen</th>
+              <th>Durum</th>
+              <th>Tarih</th>
+                <th style="width: 5rem; text-align: center">İşlemler</th>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><p-tableCheckbox [value]="item"></p-tableCheckbox></td>
+                <td>{{ item.report_year }} / {{ item.report_month }}</td>
+              <td>
+                  <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">{{ item.content }}</div>
+              </td>
+              <td>
+                  <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">{{ item.related_institutions }}</div>
+              </td>
+              <td>
+                  <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">{{ item.solution_proposals }}</div>
+              </td>
+              <td>{{ item.creator?.full_name }}</td>
+              <td>
+                <span class="badge p-1 border-round text-xs font-bold" [ngClass]="{'bg-yellow-100 text-yellow-700': item.status === 'PENDING', 'bg-green-100 text-green-700': item.status === 'APPROVED', 'bg-red-100 text-red-700': item.status === 'REJECTED'}">
+                  {{ item.status === 'PENDING' ? 'ONAY BEKLİYOR' : item.status === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ' }}
+                </span>
+              </td>
+              <td>{{ item.updated_at | date:'dd.MM.yyyy HH:mm' }}</td>
+                <td class="text-center">
+                  <button pButton pRipple type="button" icon="pi pi-external-link" class="p-button-rounded p-button-text p-button-sm" (click)="goToReportItem(item)" pTooltip="Orijinal Rapora Git" tooltipPosition="top"></button>
+                </td>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="8" class="text-center p-4">Henüz satır bulunamadı.</td></tr>
+          </ng-template>
+        </p-table>
+
+      
+      <p-paginator [rows]="filter.pageSize || 10" [totalRecords]="unitReportItemsTotal" (onPageChange)="onPageChange($event)"></p-paginator>
+
+  </ng-template>
+</div>
+
+
+<p-dialog [(visible)]="proposalsVisible" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true" header="Gelen Faaliyet Teklifleri" [draggable]="false" [resizable]="false">
+  <div class="p-3">
+    <div *ngIf="proposalsLoading" class="flex justify-content-center py-4">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+    </div>
+    
+    <div *ngIf="!proposalsLoading && proposals.length === 0" class="text-center text-500 py-4">
+      <i class="pi pi-inbox text-4xl mb-3"></i>
+      <p>Şu an onayınızı bekleyen herhangi bir faaliyet teklifi bulunmuyor.</p>
+    </div>
+
+    <div *ngIf="!proposalsLoading && proposals.length > 0">
+      <p-messages></p-messages>
+      <div *ngFor="let proposal of proposals" class="card mb-4 surface-card p-4 shadow-1 border-round border-left-3 border-yellow-500">
+        <div class="flex justify-content-between align-items-start mb-3">
+          <div>
+            <div class="text-sm text-500 mb-1">Teklif Eden: <span class="font-semibold text-900">{{ proposal.creator?.full_name || 'Bilinmiyor' }}</span></div>
+            <div class="text-xs text-500">Tarih: {{ proposal.created_at | date:'dd.MM.yyyy HH:mm' }}</div>
+          </div>
+          <div class="surface-ground px-3 py-1 border-round text-sm font-medium">
+            {{ proposal.category === 'YAPILAN_ISLER' ? 'Yapılan İşler' : 
+               proposal.category === 'YAPILACAK_ISLER' ? 'Yapılacak İşler' : 
+               proposal.category === 'KORDINASYON_GEREKTIREN_ISLER' ? 'Kordinasyon Gerektiren İşler' : proposal.category }}
+          </div>
+        </div>
+
+        <div class="field mb-3">
+          <label class="font-semibold text-sm mb-2 block">Açıklama / İçerik</label>
+          <textarea pInputTextarea [(ngModel)]="proposal.content" rows="3" class="w-full"></textarea>
+        </div>
+
+        <div class="field mb-3" *ngIf="proposal.category === 'KORDINASYON_GEREKTIREN_ISLER'">
+          <label class="font-semibold text-sm mb-2 block">İlgili Kurum / Kuruluşlar</label>
+          <input pInputText [(ngModel)]="proposal.related_institutions" class="w-full">
+        </div>
+
+        <div class="field mb-4" *ngIf="proposal.category === 'KORDINASYON_GEREKTIREN_ISLER'">
+          <label class="font-semibold text-sm mb-2 block">Çözüm Önerileri</label>
+          <textarea pInputTextarea [(ngModel)]="proposal.solution_proposals" rows="2" class="w-full"></textarea>
+        </div>
+
+        <div class="flex justify-content-end gap-2 border-top-1 surface-border pt-3">
+          <button pButton icon="pi pi-times" label="Reddet" class="p-button-danger p-button-outlined" (click)="respondToProposal(proposal, false)"></button>
+          <button pButton icon="pi pi-check" label="Kaydet & Onayla" class="p-button-success" (click)="respondToProposal(proposal, true)"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+
+<p-dialog [(visible)]="mergeDialogVisible" [modal]="true" header="Raporları Birleştir" [style]="{width: '400px'}">
+  <div class="flex flex-column gap-3 mt-3">
+    <label for="mergeTitle" class="font-medium text-900">Birleştirilmiş Rapor Adı</label>
+    <input pInputText id="mergeTitle" [(ngModel)]="mergeTitle" placeholder="Boş bırakılırsa otomatik isimlendirilir" class="w-full"/>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="İptal" icon="pi pi-times" class="p-button-text" (click)="mergeDialogVisible = false"></button>
+    <button pButton label="Birleştir" icon="pi pi-check" class="p-button-success" (click)="confirmMerge()" [loading]="mergeLoading"></button>
+  </ng-template>
+</p-dialog>
+
+
+<p-dialog
+  header="Seçilen Satırları Birleştir"
+  [(visible)]="displayMergeItemsDialog"
+  [modal]="true"
+  [style]="{width: '350px'}"
+>
+  <div class="p-fluid">
+    <div class="field">
+      <label for="mergeItemsTitle">Oluşturulacak Rapor Adı (İsteğe Bağlı)</label>
+      <input id="mergeItemsTitle" type="text" pInputText [(ngModel)]="mergeItemsTitle" placeholder="Örn: Mudanya_2026-08-19" />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="İptal" icon="pi pi-times" class="p-button-text" (click)="displayMergeItemsDialog = false"></button>
+    <button pButton label="Birleştir" icon="pi pi-check" class="p-button-primary" (click)="confirmMergeItems()"></button>
+  </ng-template>
+</p-dialog>

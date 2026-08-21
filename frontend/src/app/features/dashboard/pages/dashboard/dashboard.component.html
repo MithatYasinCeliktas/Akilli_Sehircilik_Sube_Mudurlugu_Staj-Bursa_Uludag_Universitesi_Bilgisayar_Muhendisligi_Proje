@@ -1,0 +1,361 @@
+<p-toast></p-toast>
+<div class="grid">
+  <div class="col-12">
+    <div class="surface-card px-4 py-8 shadow-1 border-round flex flex-column md:flex-row gap-4 align-items-center mb-4" style="min-height: 250px; position: relative; z-index: 99;">
+      <div class="flex-grow-1 text-center md:text-left">
+        <div class="text-4xl font-bold text-900 mb-3">Hoş Geldiniz, <span class="text-primary">{{ currentUser?.full_name }}</span></div>
+        <div class="text-600 text-lg">Bursa Büyükşehir Belediyesi Faaliyet Raporu Sistemine başarıyla giriş yaptınız. Bu panel üzerinden raporlarınızı yönetebilir ve takip edebilirsiniz.</div>
+      </div>
+      <div class="flex flex-wrap gap-3 align-items-center justify-content-center">
+        <div class="custom-hover-menu">
+          <div class="item">
+            <a href="javascript:void(0)" class="link">
+              <span>{{ filterYearLabel }}</span>
+              <svg viewBox="0 0 360 360" xml:space="preserve">
+                <g id="SVGRepo_iconCarrier">
+                  <path d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393 c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393 s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"></path>
+                </g>
+              </svg>
+            </a>
+            <div class="submenu">
+              <div class="submenu-item" *ngFor="let opt of yearOptions">
+                <a href="javascript:void(0)" class="submenu-link" (click)="filterYear = opt.value; onFilterChange()"><span>{{ opt.label }}</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="custom-hover-menu">
+          <div class="item">
+            <a href="javascript:void(0)" class="link">
+              <span>{{ filterMonthLabel }}</span>
+              <svg viewBox="0 0 360 360" xml:space="preserve">
+                <g id="SVGRepo_iconCarrier">
+                  <path d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393 c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393 s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"></path>
+                </g>
+              </svg>
+            </a>
+            <div class="submenu">
+              <div class="submenu-item" *ngFor="let opt of monthOptions">
+                <a href="javascript:void(0)" class="submenu-link" (click)="filterMonth = opt.value; onFilterChange()"><span>{{ opt.label }}</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<div class="grid mt-4" *ngIf="(currentUser?.is_superuser || currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGER') && filteredPendingShares.length > 0">
+  <div class="col-12">
+    <div class="surface-card p-4 shadow-1 border-round border-blue-200" style="border-left: 4px solid #3b82f6;">
+      <h3 class="text-xl font-medium text-blue-600 mb-3 border-bottom-1 surface-border pb-2">Onay Bekleyen Paylaşım Talepleri</h3>
+      <p-table [value]="filteredPendingShares" responsiveLayout="scroll" [rowHover]="true" styleClass="p-datatable-sm" [loading]="sharesLoading" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Talep Eden</th>
+            <th>Rapor Dönemi</th>
+            <th>Hedef (Kime / Nereye)</th>
+            <th>Talep Tarihi</th>
+            <th style="width: 8rem">İşlemler</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-share>
+          <tr>
+            <td>
+              <div class="font-medium">{{ share.requester?.full_name || 'Bilinmiyor' }}</div>
+              <div class="text-xs text-500">{{ share.requester?.email }}</div>
+            </td>
+            <td>{{ share.report?.month }} / {{ share.report?.year }}</td>
+            <td>
+              <span *ngIf="share.target_user">👤 {{ share.target_user.full_name }}</span>
+              <span *ngIf="share.target_unit">🏢 {{ share.target_unit.name }}</span>
+            </td>
+            <td>{{ share.created_at | date:'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              <div class="flex gap-2">
+                <button pButton icon="pi pi-check" class="p-button-rounded p-button-success p-button-sm p-button-outlined" pTooltip="Onayla" (click)="approveShare(share.id)"></button>
+                <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm p-button-outlined" pTooltip="Reddet" (click)="rejectShare(share.id)"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+
+<div class="grid mt-4" *ngIf="filteredMyShares && filteredMyShares.length > 0">
+  <div class="col-12">
+    <div class="surface-card p-4 shadow-1 border-round border-orange-200" style="border-left: 4px solid #f97316;">
+      <h3 class="text-xl font-medium text-orange-600 mb-3 border-bottom-1 surface-border pb-2">Kendi Yaptığım Paylaşım Talepleri (Onay Bekleyenler)</h3>
+      <p-table [value]="filteredMyShares" responsiveLayout="scroll" [rowHover]="true" styleClass="p-datatable-sm" [loading]="mySharesLoading" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Rapor Dönemi</th>
+            <th>Hedef (Kime / Nereye)</th>
+            <th>Onaycı (Yönetici)</th>
+            <th>Durum</th>
+            <th>Talep Tarihi</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-share>
+          <tr>
+            <td>{{ share.report?.month }} / {{ share.report?.year }}</td>
+            <td>
+              <span *ngIf="share.target_user"><i class="pi pi-user mr-1"></i>{{ share.target_user.full_name }}</span>
+              <span *ngIf="share.target_unit"><i class="pi pi-building mr-1"></i>{{ share.target_unit.name }}</span>
+            </td>
+            <td>
+              <div class="font-medium">{{ share.manager?.full_name || 'Bilinmiyor' }}</div>
+            </td>
+            <td>
+              <span [class]="'p-badge ' + (share.status === 'APPROVED' ? 'p-badge-success' : share.status === 'REJECTED' ? 'p-badge-danger' : share.status === 'REVOKED' ? 'p-badge-secondary' : 'p-badge-warning')">
+                {{ share.status === 'APPROVED' ? 'Onaylandı' : share.status === 'REJECTED' ? 'Reddedildi' : share.status === 'REVOKED' ? 'Geri Alındı' : 'Onay Bekliyor' }}
+              </span>
+            </td>
+            <td>{{ share.created_at | date:'dd.MM.yyyy HH:mm' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<div class="grid mt-4" *ngIf="(currentUser?.is_superuser || currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGER') && filteredApprovedShares.length > 0">
+  <div class="col-12">
+    <div class="surface-card p-4 shadow-1 border-round border-green-200" style="border-left: 4px solid #22c55e;">
+      <h3 class="text-xl font-medium text-green-600 mb-3 border-bottom-1 surface-border pb-2">Onaylanmış Paylaşımlar (Aktif)</h3>
+      <p-table [value]="filteredApprovedShares" responsiveLayout="scroll" [rowHover]="true" styleClass="p-datatable-sm" [loading]="approvedSharesLoading" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Paylaşan Kişi</th>
+            <th>Rapor Dönemi</th>
+            <th>Hedef (Kime / Nereye)</th>
+            <th>Onay Tarihi</th>
+            <th style="width: 8rem">İşlemler</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-share>
+          <tr>
+            <td>
+              <div class="font-medium">{{ share.requester?.full_name || 'Bilinmiyor' }}</div>
+              <div class="text-xs text-500">{{ share.requester?.email }}</div>
+            </td>
+            <td>{{ share.report?.month }} / {{ share.report?.year }}</td>
+            <td>
+              <span *ngIf="share.target_user">👤 {{ share.target_user.full_name }}</span>
+              <span *ngIf="share.target_unit">🏢 {{ share.target_unit.name }}</span>
+            </td>
+            <td>{{ share.updated_at | date:'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              <button pButton icon="pi pi-ban" class="p-button-rounded p-button-warning p-button-sm p-button-outlined" pTooltip="Yetkiyi Geri Al" (click)="revokeShare(share.id)"></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<div class="grid mt-4">
+  <div class="col-12">
+    <div class="surface-card p-4 shadow-1 border-round">
+      <h3 class="text-xl font-medium text-900 mb-3 border-bottom-1 surface-border pb-2">
+        <ng-container *ngIf="currentUser?.role === 'MANAGER' || currentUser?.role === 'ADMIN' || currentUser?.role === 'USER_MANAGER'; else personelTitle">Hazırladığım Raporlar</ng-container>
+        <ng-template #personelTitle>Eklediğim Faaliyet Satırları</ng-template>
+      </h3>
+      
+      <!-- YÖNETİCİ GÖRÜNÜMÜ: RAPORLAR -->
+      <p-table *ngIf="currentUser?.role === 'MANAGER' || currentUser?.role === 'ADMIN' || currentUser?.role === 'USER_MANAGER'" [value]="myRecentReports" responsiveLayout="scroll" [rowHover]="true" styleClass="p-datatable-sm" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Dönem</th>
+            <th>Oluşturulma / Güncellenme</th>
+            <th>Durum</th>
+            <th style="width: 5rem">İşlem</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-report>
+          <tr>
+            <td>
+              <span class="font-medium">{{ report.month }}/{{ report.year }}</span>
+            </td>
+            <td>{{ (report.updated_at || report.updatedAt || report.created_at || report.createdAt) | date:'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              <span [class]="'p-badge ' + (report.status === 'APPROVED' ? 'p-badge-success' : report.status === 'REJECTED' ? 'p-badge-danger' : 'p-badge-warning')">
+                {{ report.status === 'APPROVED' ? 'Onaylandı' : report.status === 'REJECTED' ? 'Reddedildi' : 'Onay Bekliyor' }}
+              </span>
+            </td>
+            <td>
+              <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm" (click)="editReport(report.id)"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center p-4">Henüz hazırladığınız bir rapor bulunmamaktadır.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <!-- PERSONEL GÖRÜNÜMÜ: EKLENEN SATIRLAR -->
+      <p-table *ngIf="!(currentUser?.role === 'MANAGER' || currentUser?.role === 'ADMIN' || currentUser?.role === 'USER_MANAGER')" [value]="myRecentItems" responsiveLayout="scroll" [rowHover]="true" styleClass="p-datatable-sm" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Dönem</th>
+            <th>Kategori</th>
+            <th>Açıklama</th>
+            <th>Durum</th>
+            <th style="width: 5rem">İşlem</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td><span class="font-medium">{{ item.report_month }}/{{ item.report_year }}</span></td>
+            <td>{{ item.category === 'YAPILAN_ISLER' ? 'Yapılan İşler' : (item.category === 'YAPILACAK_ISLER' ? 'Yapılacak İşler' : 'Koordinasyon Gerektiren İşler') }}</td>
+            <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">{{ item.content }}</td>
+            <td>
+              <span [class]="'p-badge ' + (item.status === 'APPROVED' ? 'p-badge-success' : item.status === 'REJECTED' ? 'p-badge-danger' : 'p-badge-warning')">
+                {{ item.status === 'APPROVED' ? 'Onaylandı' : item.status === 'REJECTED' ? 'Reddedildi' : 'Onay Bekliyor' }}
+              </span>
+            </td>
+            <td>
+              <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-sm p-button-info" pTooltip="Raporu Gör" (click)="editReport(item.report_id)"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center p-4">Henüz eklediğiniz bir faaliyet satırı bulunmamaktadır.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <div class="col-12" *ngIf="myRejectedReports.length > 0 || myRejectedItems.length > 0">
+    <div class="surface-card p-4 shadow-1 border-round border-red-200" style="border-left: 4px solid #f87171;">
+      <h3 class="text-xl font-medium text-red-600 mb-3 border-bottom-1 surface-border pb-2">
+        <ng-container *ngIf="currentUser?.role === 'MANAGER' || currentUser?.role === 'ADMIN' || currentUser?.role === 'USER_MANAGER'; else personelRejectedTitle">Reddedilen Raporlarım</ng-container>
+        <ng-template #personelRejectedTitle>Reddedilen Satırlarım</ng-template>
+      </h3>
+      
+      <!-- YÖNETİCİ GÖRÜNÜMÜ: RAPORLAR -->
+      <p-table *ngIf="currentUser?.role === 'MANAGER' || currentUser?.role === 'ADMIN' || currentUser?.role === 'USER_MANAGER'" [value]="myRejectedReports" responsiveLayout="scroll" [rowHover]="true" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Dönem</th>
+            <th>Red Nedeni</th>
+            <th style="width: 5rem">İşlem</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-report>
+          <tr class="cursor-pointer hover:surface-hover" (click)="showRejectedPreview(report)">
+            <td>
+              <span class="font-medium">{{ report.month }}/{{ report.year }}</span>
+            </td>
+            <td>
+              <div class="text-500 line-height-3 text-sm" style="max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ report.rejection_note || '-' }}
+              </div>
+            </td>
+            <td>
+              <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-sm p-button-secondary" (click)="showRejectedPreview(report); $event.stopPropagation()"></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <!-- PERSONEL GÖRÜNÜMÜ: EKLENEN SATIRLAR -->
+      <p-table *ngIf="!(currentUser?.role === 'MANAGER' || currentUser?.role === 'ADMIN' || currentUser?.role === 'USER_MANAGER')" [value]="myRejectedItems" responsiveLayout="scroll" [rowHover]="true" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Dönem</th>
+            <th>Satır İçeriği</th>
+            <th>Red Nedeni</th>
+            <th style="width: 5rem">İşlem</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr class="cursor-pointer hover:surface-hover" (click)="showRejectedPreview(item)">
+            <td>
+              <span class="font-medium">{{ item.report_month }}/{{ item.report_year }}</span>
+            </td>
+            <td>
+              <div class="text-500 line-height-3 text-sm" style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ item.content }}
+              </div>
+            </td>
+            <td>
+              <div class="text-500 line-height-3 text-sm text-red-500 font-bold" style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ item.rejection_note || '-' }}
+              </div>
+            </td>
+            <td>
+              <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-sm p-button-secondary" (click)="showRejectedPreview(item); $event.stopPropagation()"></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog header="Reddedilen Rapor Detayı" [(visible)]="displayRejectedPreview" [modal]="true" [style]="{width: '40vw'}" [draggable]="false" [resizable]="false">
+  <div *ngIf="selectedRejectedReport" class="p-fluid mt-2">
+    <div class="mb-3">
+      <span class="block text-500 font-medium mb-1">İlgili Dönem</span>
+      <div class="text-900 font-medium text-lg">{{ selectedRejectedReport.month }} / {{ selectedRejectedReport.year }}</div>
+    </div>
+    
+    <div class="mb-4 p-3 border-round bg-red-50 border-1 border-red-200">
+      <div class="flex align-items-center mb-2">
+        <i class="pi pi-exclamation-circle text-red-600 text-xl mr-2"></i>
+        <span class="block text-red-600 font-bold text-lg">Yönetici Red Nedeni / Düzeltme Notu</span>
+      </div>
+      <div class="text-800 line-height-3 text-base mt-2" style="white-space: pre-wrap;">{{ selectedRejectedReport.rejection_note || 'Belirtilmemiş' }}</div>
+    </div>
+    
+    <div class="flex justify-content-end gap-2 mt-4 pt-3 border-top-1 surface-border">
+      <button pButton type="button" label="Kapat" class="p-button-text p-button-secondary" (click)="displayRejectedPreview = false"></button>
+      <button pButton type="button" label="Raporu Düzenle" icon="pi pi-pencil" class="p-button-primary" (click)="editReport(selectedRejectedReport.id); displayRejectedPreview = false"></button>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog [header]="dialogTitle" [(visible)]="displayReportsDialog" [modal]="true" [style]="{width: '50vw'}" [draggable]="false" [resizable]="false" [maximizable]="true">
+  <p-table [value]="selectedReports" [paginator]="true" [rows]="10" responsiveLayout="scroll" [rowHover]="true">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Oluşturan Kişi</th>
+        <th>Dönem</th>
+        <th>Durum</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-report>
+      <tr>
+        <td>
+          <div class="font-medium">{{ report.user?.full_name || 'Bilinmiyor' }}</div>
+          <div class="text-sm text-500">{{ report.user?.email || '-' }}</div>
+        </td>
+        <td>{{ report.month }}/{{ report.year }}</td>
+        <td>
+          <span [class]="'p-badge ' + (report.status === 'APPROVED' ? 'p-badge-success' : report.status === 'REJECTED' ? 'p-badge-danger' : 'p-badge-warning')">
+            {{ report.status === 'APPROVED' ? 'Onaylandı' : report.status === 'REJECTED' ? 'Reddedildi' : 'Onay Bekliyor' }}
+          </span>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="3" class="text-center p-4">Bu kategoriye ait rapor bulunamadı.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>
+

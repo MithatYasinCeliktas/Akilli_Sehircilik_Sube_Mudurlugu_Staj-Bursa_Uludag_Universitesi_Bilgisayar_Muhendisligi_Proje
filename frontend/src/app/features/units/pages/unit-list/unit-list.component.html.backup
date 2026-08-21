@@ -1,0 +1,230 @@
+<p-toast key="center" position="center"></p-toast>
+<div class="card surface-card p-4 shadow-1 border-round">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-column">
+      <h2 class="text-2xl font-bold m-0">Organizasyon Yapısı</h2>
+      <span *ngIf="isShareMode" class="text-blue-500 font-bold mt-1">
+        <i class="pi pi-info-circle mr-1"></i> Paylaşım Modu Aktif - Lütfen raporu paylaşmak istediğiniz birimi veya kişiyi seçin.
+      </span>
+    </div>
+    <div class="flex align-items-center gap-3 flex-wrap">
+      <div *ngIf="viewMode === 'chart'" class="flex align-items-center gap-3 mx-4 flex-1" style="min-width: 250px; max-width: 450px;">
+        <i class="pi pi-search-minus cursor-pointer text-xl text-600 hover:text-primary" (click)="zoomLevel = zoomLevel > 30 ? zoomLevel - 10 : 30"></i>
+        <div class="flex-1 px-2 mt-1">
+          <p-slider [(ngModel)]="zoomLevel" [min]="30" [max]="150" [step]="10" [style]="{'width':'100%'}"></p-slider>
+        </div>
+        <i class="pi pi-search-plus cursor-pointer text-xl text-600 hover:text-primary" (click)="zoomLevel = zoomLevel < 150 ? zoomLevel + 10 : 150"></i>
+        <span class="text-sm font-bold w-3rem text-right text-700">%{{zoomLevel}}</span>
+      </div>
+      <div class="relative flex flex-column">
+        <span class="p-input-icon-right">
+          <i class="pi pi-search"></i>
+          <input type="text" pInputText placeholder="Birim veya Personel Ara..." [(ngModel)]="searchQuery" (input)="filterTree()" (focus)="showSearchOptions = true" style="width: 250px;" />
+        </span>
+        <div *ngIf="showSearchOptions" class="absolute bg-white shadow-2 border-round p-2 z-5 flex gap-2" style="top: 100%; left: 0; width: 100%; margin-top: 4px;">
+           <button pButton label="Birim" class="p-button-sm p-button-outlined flex-1" [ngClass]="{'p-button-primary': searchType === 'unit' || searchType === 'all', 'p-button-secondary': searchType !== 'unit' && searchType !== 'all'}" (click)="setSearchType('unit')" pTooltip="Sadece Birimlerde Ara"></button>
+           <button pButton label="Kullanıcı" class="p-button-sm p-button-outlined flex-1" [ngClass]="{'p-button-primary': searchType === 'user' || searchType === 'all', 'p-button-secondary': searchType !== 'user' && searchType !== 'all'}" (click)="setSearchType('user')" pTooltip="Sadece Kullanıcılarda Ara"></button>
+           <i class="pi pi-times cursor-pointer align-self-center ml-1 text-500 hover:text-700" (click)="showSearchOptions = false"></i>
+        </div>
+      </div>
+      <p-selectButton [options]="viewOptions" [ngModel]="viewMode" (ngModelChange)="onViewModeChange($event)" optionLabel="label" optionValue="value" [allowEmpty]="false">
+        <ng-template let-item>
+          <i [class]="item.icon" class="mr-2"></i>
+          <span>{{item.label}}</span>
+        </ng-template>
+      </p-selectButton>
+      <button
+        pButton
+        [label]="showUsers ? 'Kullanıcıları Gizle' : 'Kullanıcıları Göster'"
+        [icon]="showUsers ? 'pi pi-eye-slash' : 'pi pi-eye'"
+        [class]="showUsers ? 'p-button-secondary p-button-outlined' : 'p-button-secondary'"
+        (click)="toggleUsers()"
+      ></button>
+      <button
+        *ngIf="isAdmin"
+        pButton
+        label="Yeni Birim Ekle"
+        icon="pi pi-plus"
+        class="p-button-primary"
+        (click)="showCreateDialog()"
+      ></button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex justify-content-center p-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+  </div>
+
+  <div *ngIf="!loading">
+    <p-tree *ngIf="viewMode === 'tree'" [value]="nodes" selectionMode="single" [(selection)]="selectedNode" class="w-full" (onNodeSelect)="onNodeClick($event.node.data)">
+      <ng-template let-node pTemplate="default">
+        <div class="flex justify-content-between align-items-center w-full">
+          <span [ngClass]="node.data?.isCurrentUser ? 'px-2 py-1 border-round font-bold' : ''" [style]="node.data?.isCurrentUser ? {'background-color': '#22c55e', 'color': 'white'} : {}">{{node.label}}</span>
+          <div class="flex gap-2">
+            <button *ngIf="(isAdmin || isUserManager) && node.key.startsWith('unit-')" pButton icon="pi pi-user-plus" class="p-button-rounded p-button-text p-button-sm ml-2 p-button-success" (click)="addUserToUnit(node.data, $event)" pTooltip="Kullanıcı Ekle"></button>
+            <button *ngIf="isAdmin && node.key.startsWith('unit-')" pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm ml-2" (click)="editUnit(node.data, $event)" pTooltip="Düzenle"></button>
+          </div>
+        </div>
+      </ng-template>
+    </p-tree>
+    
+    <div *ngIf="viewMode === 'chart'" class="overflow-auto pb-4" style="height: calc(100vh - 200px); min-height: 800px;">
+      <div [style.transform]="'scale(' + (zoomLevel / 100) + ')'" [style.transform-origin]="'top center'" class="transition-transform transition-duration-200 inline-block min-w-full text-center mt-4">
+        
+        <!-- Node Card Şablonu -->
+        <ng-template #nodeCard let-node let-direction="direction" let-level="level">
+          <div class="relative">
+            <div class="border-round shadow-4 p-3 text-center transition-all transition-duration-200 cursor-pointer w-14rem"
+                 [ngClass]="{
+                   'shadow-6 border-2 border-white': selectedNode?.key === node.key
+                 }"
+                 [style.background-color]="node.data?.isCurrentUser ? '#008753' : (level === 0 ? '#16a34a' : (level === 1 ? '#22c55e' : '#4ade80'))"
+                 [style.color]="'white'"
+                 (click)="selectedNode = node; onNodeClick(node.data)">
+              
+              <!-- Üst Kısım: İkon ve İsim -->
+              <div class="flex flex-column align-items-center gap-2 mb-2">
+                <div class="font-medium text-sm w-full line-height-3">{{ node.label }}</div>
+                <div *ngIf="node.data?.description" class="text-xs opacity-80">{{node.data.description}}</div>
+              </div>
+              
+              <!-- Alt Kısım: Tag ve İkonlar -->
+              <div class="flex justify-content-center align-items-center gap-2 mt-2">
+                <button *ngIf="(isAdmin || isUserManager) && node.key.startsWith('unit-')" pButton icon="pi pi-user-plus" 
+                        class="p-button-rounded p-button-text p-button-sm text-white" 
+                        (click)="addUserToUnit(node.data, $event)" pTooltip="Kullanıcı Ekle"></button>
+                <button *ngIf="isAdmin && node.key.startsWith('unit-')" pButton icon="pi pi-pencil" 
+                        class="p-button-rounded p-button-text p-button-sm text-white" 
+                        (click)="editUnit(node.data, $event)" pTooltip="Düzenle"></button>
+                <button *ngIf="node.children && node.children.length > 0" 
+                        pButton [icon]="node.expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" 
+                        class="p-button-rounded p-button-text p-button-sm text-white"
+                        (click)="node.expanded = !node.expanded; $event.stopPropagation()"></button>
+              </div>
+            </div>
+            
+            <!-- Lazer Çizgiler (Sadece çocuklar için, çok geniş ağaçlar için devasa uzunluk) -->
+            <div *ngIf="direction === 'right'" class="absolute" style="top: 2.5rem; left: 50%; width: 10000px; height: 2px; background-color: var(--surface-border); z-index: -1;"></div>
+            <div *ngIf="direction === 'left'" class="absolute" style="top: 2.5rem; right: 50%; width: 10000px; height: 2px; background-color: var(--surface-border); z-index: -1;"></div>
+          </div>
+        </ng-template>
+
+        <!-- Recursive Tree Şablonu (Kusursuz Grid Mimarisi) -->
+        <ng-template #recursiveTree let-node let-direction="direction" let-level="level">
+          <div *ngIf="node" style="display: inline-grid; grid-template-columns: auto 2px auto; gap: 0; z-index: 1;" class="relative">
+              
+              <!-- Row 1: Ebeveyn Kartı (En Üst Katman) -->
+              <div style="grid-column: 2; grid-row: 1; width: 2px; display: flex; justify-content: center; position: relative; z-index: 3; overflow: visible;">
+                  <div style="width: 0; display: flex; justify-content: center; overflow: visible;">
+                      <ng-container *ngTemplateOutlet="nodeCard; context: {$implicit: node, direction: direction, level: level}"></ng-container>
+                  </div>
+                  
+                  <!-- Karttan Omurgaya inen dikey bağlantı çizgisi (Orta Katman) -->
+                  <div *ngIf="node.expanded && node.children && node.children.length > 0" class="absolute bg-surface-border" style="width: 2px; height: 2.5rem; bottom: -2rem; z-index: -1;"></div>
+              </div>
+
+              <!-- Row 2: Alt Ağaç (Çocuklar) (Alt Katman) -->
+              <ng-container *ngIf="node.expanded && node.children && node.children.length > 0">
+                  
+                  <!-- Merkez Omurga (Spine) -->
+                  <div style="grid-column: 2; grid-row: 2; width: 2px; background-color: var(--surface-border); margin-top: 1.5rem; z-index: 2;" class="relative"></div>
+
+                  <!-- Sol Çocuklar (Lazer Sağa Gider, sağ taraftan Spine'da kesilir) -->
+                  <div style="grid-column: 1; grid-row: 2; margin-top: 1.5rem; padding-right: 8rem; padding-left: 8rem; z-index: 1;" class="flex flex-column align-items-end overflow-hidden gap-4 pb-4 relative">
+                      <ng-container *ngFor="let child of node.children; let i = index">
+                          <div *ngIf="i % 2 === 0" class="flex relative w-full justify-content-end">
+                              <ng-container *ngTemplateOutlet="recursiveTree; context: {$implicit: child, direction: 'right', level: level + 1}"></ng-container>
+                          </div>
+                      </ng-container>
+                  </div>
+
+                  <!-- Sağ Çocuklar (Lazer Sola Gider, sol taraftan Spine'da kesilir) -->
+                  <div style="grid-column: 3; grid-row: 2; margin-top: 1.5rem; padding-left: 8rem; padding-right: 8rem; z-index: 1;" class="flex flex-column align-items-start overflow-hidden gap-4 pb-4 relative">
+                      <ng-container *ngFor="let child of node.children; let i = index">
+                          <div *ngIf="i % 2 !== 0" class="flex relative w-full justify-content-start">
+                              <ng-container *ngTemplateOutlet="recursiveTree; context: {$implicit: child, direction: 'left', level: level + 1}"></ng-container>
+                          </div>
+                      </ng-container>
+                  </div>
+              </ng-container>
+          </div>
+        </ng-template>
+
+        <div class="p-4 flex flex-column align-items-center" style="width: max-content; min-width: 100%; margin: 0 auto;" *ngIf="nodes && nodes.length > 0">
+          
+          <div class="relative mb-3">
+             <ng-container *ngTemplateOutlet="recursiveTree; context: {$implicit: nodes[0], direction: 'center', level: 0}"></ng-container>
+          </div>
+
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Share Mode Fixed Footer -->
+<div *ngIf="isShareMode" class="fixed bottom-0 left-0 w-full bg-white shadow-6 p-3 flex justify-content-center align-items-center gap-4" style="z-index: 1000; border-top: 2px solid var(--primary-color);">
+  <div class="text-lg">
+    <span class="font-bold text-600 mr-2">Seçilen Hedef:</span>
+    <span *ngIf="selectedShareTarget" class="font-bold text-primary">{{ selectedShareTarget.name }} ({{ selectedShareTarget.type === 'unit' ? 'Birim' : 'Kullanıcı' }})</span>
+    <span *ngIf="!selectedShareTarget" class="text-500 italic">Henüz bir seçim yapmadınız...</span>
+  </div>
+  <div class="flex gap-2">
+    <button pButton label="İptal" icon="pi pi-times" class="p-button-secondary p-button-outlined" (click)="cancelShare()"></button>
+    <button pButton label="Paylaşımı Onaya Gönder" icon="pi pi-check" class="p-button-success" [disabled]="!selectedShareTarget" (click)="submitShare()"></button>
+  </div>
+</div>
+
+<!-- Yeni/Düzenle Birim Modali -->
+<p-dialog
+  [header]="isEditing ? 'Birim Düzenle' : 'Yeni Birim Ekle'"
+  [(visible)]="displayCreateDialog"
+  [modal]="true"
+  [style]="{ width: '700px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <form [formGroup]="unitForm" (ngSubmit)="onUnitFormSubmit()">
+    <div class="p-fluid">
+      <div class="field mb-3">
+        <label for="name" class="block font-medium mb-1">Birim Adı</label>
+        <input pInputText id="name" type="text" formControlName="name" placeholder="Örn: Bilgi İşlem Dairesi Başkanlığı" />
+        <small class="text-red-500 block mt-1" *ngIf="unitForm.get('name')?.invalid && unitForm.get('name')?.touched">
+          Birim Adı zorunludur.
+        </small>
+      </div>
+
+      <div class="field mb-3">
+        <label for="code" class="block font-medium mb-1">Birim Kodu (Opsiyonel)</label>
+        <input pInputText id="code" type="text" formControlName="code" placeholder="Örn: BIDB" />
+      </div>
+
+      <div class="field mb-3">
+        <label for="parent_id" class="block font-medium mb-1">Üst Birim</label>
+        <p-dropdown
+          id="parent_id"
+          [options]="flatUnits"
+          formControlName="parent_id"
+          optionLabel="label"
+          optionValue="value"
+          [showClear]="true"
+          [filter]="true"
+          filterPlaceholder="Üst birim ara..."
+          placeholder="Ana Birim (Yoksa boş bırakın)"
+          class="w-full"
+        ></p-dropdown>
+      </div>
+
+      <div class="field mb-3">
+        <label for="description" class="block font-medium mb-1">Açıklama (Opsiyonel)</label>
+        <textarea pInputTextarea id="description" formControlName="description" rows="3" placeholder="Birim hakkında kısa bilgi..."></textarea>
+      </div>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button pButton type="button" label="İptal" class="p-button-secondary p-button-outlined" (click)="displayCreateDialog = false"></button>
+      <button pButton type="submit" label="Kaydet" icon="pi pi-check" class="p-button-primary" [loading]="formLoading"></button>
+    </div>
+  </form>
+</p-dialog>

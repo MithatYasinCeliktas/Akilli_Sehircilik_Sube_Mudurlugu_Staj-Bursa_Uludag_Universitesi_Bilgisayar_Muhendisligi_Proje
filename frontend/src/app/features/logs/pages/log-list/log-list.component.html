@@ -1,0 +1,99 @@
+<div class="card p-4">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2>Sistem Logları</h2>
+    <p-button label="JSON İndir" icon="pi pi-download" styleClass="p-button-success" (onClick)="exportJson()"></p-button>
+  </div>
+
+  <div class="grid p-fluid mb-3">
+    <div class="col-12 md:col-3">
+      <span class="p-float-label">
+        <input pInputText id="userId" type="number" [(ngModel)]="filter.user_id" (keyup.enter)="onFilterChange()" />
+        <label for="userId">Kullanıcı ID</label>
+      </span>
+    </div>
+    
+    <div class="col-12 md:col-3">
+      <p-dropdown 
+        [options]="actionOptions" 
+        [(ngModel)]="filter.action" 
+        (onChange)="onFilterChange()" 
+        placeholder="Aksiyon Seçiniz"
+        [showClear]="true"
+        appendTo="body">
+      </p-dropdown>
+    </div>
+
+    <div class="col-12 md:col-3">
+      <p-dropdown 
+        [options]="entityTypeOptions" 
+        [(ngModel)]="filter.entity_type" 
+        (onChange)="onFilterChange()" 
+        placeholder="Entity Türü"
+        [showClear]="true"
+        appendTo="body">
+      </p-dropdown>
+    </div>
+    
+    <div class="col-12 md:col-3 flex gap-2">
+        <p-button label="Filtrele" icon="pi pi-search" (onClick)="onFilterChange()"></p-button>
+    </div>
+  </div>
+
+  <p-table 
+    [value]="logs" 
+    [lazy]="true" 
+    (onLazyLoad)="loadLogs($event)" 
+    dataKey="id" 
+    [tableStyle]="{'min-width': '50rem'}" 
+    [paginator]="true" 
+    [rows]="filter.page_size" 
+    [totalRecords]="totalRecords" 
+    [loading]="loading" 
+    [rowsPerPageOptions]="[10, 20, 50, 100]">
+    
+    <ng-template pTemplate="header">
+        <tr>
+            <th>ID</th>
+            <th>Tarih</th>
+            <th>Kullanıcı Adı / ID</th>
+            <th>Aksiyon</th>
+            <th>Entity Type/ID</th>
+            <th>Detaylar</th>
+        </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-log>
+        <tr>
+            <td>{{log.id}}</td>
+            <td>{{log.created_at | date:'dd.MM.yyyy HH:mm:ss'}}</td>
+            <td>
+              <ng-container *ngIf="log.user; else noUser">
+                {{log.user.full_name}} <br/>
+                <small class="text-color-secondary">({{log.user.email}})</small>
+              </ng-container>
+              <ng-template #noUser>
+                ID: {{log.user_id}}
+              </ng-template>
+            </td>
+            <td>
+              <span class="p-tag p-tag-info">{{log.action}}</span>
+            </td>
+            <td>
+              {{log.entity_type || '-'}} <br/>
+              <small *ngIf="log.entity_id">ID: {{log.entity_id}}</small>
+            </td>
+            <td>
+              <div class="text-sm border-1 border-300 border-round p-2 surface-50 overflow-auto" style="max-height: 100px; max-width: 300px; white-space: pre-wrap;">
+                {{formatDetails(log.details)}}
+              </div>
+            </td>
+        </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+        <tr>
+            <td colspan="6" class="text-center">Kayıt bulunamadı.</td>
+        </tr>
+    </ng-template>
+  </p-table>
+</div>

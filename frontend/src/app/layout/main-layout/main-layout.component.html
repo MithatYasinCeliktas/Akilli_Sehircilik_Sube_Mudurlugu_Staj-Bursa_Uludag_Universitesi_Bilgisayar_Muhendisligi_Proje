@@ -1,0 +1,15 @@
+<div class="h-screen flex flex-column surface-ground overflow-hidden">
+  <app-navbar></app-navbar>
+
+  <div class="flex flex-1 overflow-hidden">
+    <div class="w-18rem flex-shrink-0">
+      <app-sidebar class="block h-full"></app-sidebar>
+    </div>
+
+    <main class="flex-1 p-4 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+  
+  <app-chatbot></app-chatbot>
+</div>

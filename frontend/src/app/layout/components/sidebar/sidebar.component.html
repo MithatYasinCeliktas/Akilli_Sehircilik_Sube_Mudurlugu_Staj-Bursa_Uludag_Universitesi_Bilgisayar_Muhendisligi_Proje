@@ -1,0 +1,39 @@
+<div class="sidebar-container h-full sidebar-bg p-3 flex flex-column overflow-y-auto">
+  <ng-container *ngFor="let item of menuItems">
+    <!-- Main Item -->
+    <a *ngIf="!item.items"
+       [routerLink]="item.routerLink" 
+       [queryParams]="item.queryParams"
+       routerLinkActive="active-menu-item" 
+       class="sidebar-menu-item p-4 border-round mb-3 text-white no-underline flex align-items-center transition-colors w-full cursor-pointer block">
+      <i [class]="item.icon + ' mr-3 text-2xl'"></i>
+      <span class="font-semibold text-lg">{{item.label}}</span>
+    </a>
+
+    <!-- Item with sub-items -->
+    <div *ngIf="item.items" class="mb-3">
+      <a (click)="$any(item).expanded = !$any(item).expanded"
+         class="sidebar-menu-item p-4 border-round text-white no-underline flex align-items-center justify-content-between transition-colors w-full cursor-pointer block"
+         [class.active-menu-item]="isItemActive(item)">
+        <div class="flex align-items-center">
+          <i [class]="item.icon + ' mr-3 text-2xl'"></i>
+          <span class="font-semibold text-lg">{{item.label}}</span>
+        </div>
+        <i class="pi" [ngClass]="{'pi-chevron-down': $any(item).expanded, 'pi-chevron-right': !$any(item).expanded}"></i>
+      </a>
+      
+      <!-- Sub Items -->
+      <div *ngIf="$any(item).expanded" class="pl-4 mt-2 fade-in">
+        <a *ngFor="let subItem of item.items"
+           [routerLink]="subItem.routerLink"
+           [queryParams]="subItem.queryParams"
+           routerLinkActive="active-sub-menu-item"
+           [routerLinkActiveOptions]="{exact: true}"
+           class="sidebar-menu-item p-3 border-round mb-2 text-white no-underline flex align-items-center transition-colors w-full cursor-pointer block text-sm">
+          <i [class]="subItem.icon + ' mr-3 text-lg'"></i>
+          <span>{{subItem.label}}</span>
+        </a>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,83 @@
+/* Unit list styles */
+
+.modern-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.modern-node {
+  position: relative;
+  margin-top: 1rem;
+  padding-left: 2.5rem;
+}
+
+/* Vertical connecting line */
+.modern-node::before {
+  content: '';
+  position: absolute;
+  top: -1rem; 
+  left: 0;
+  bottom: 0; 
+  border-left: 2px solid var(--surface-border);
+  z-index: 0;
+}
+
+/* Horizontal connecting line */
+.modern-node::after {
+  content: '';
+  position: absolute;
+  top: 2.5rem;
+  left: 0;
+  width: 2.5rem;
+  border-top: 2px solid var(--surface-border);
+  z-index: 0;
+}
+
+/* Very first root nodes should not have left lines */
+.p-4 > .modern-tree > .modern-node::before,
+.p-4 > .modern-tree > .modern-node::after {
+  display: none;
+}
+.p-4 > .modern-tree > .modern-node {
+  padding-left: 0;
+}
+
+/* Last child: stop vertical line at the horizontal branch */
+.modern-node:last-child::before {
+  bottom: auto;
+  height: calc(2.5rem + 1rem); 
+}
+
+/* Premium Card Styles */
+.modern-card {
+  position: relative;
+  z-index: 1;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  min-width: 320px;
+  max-width: 100%;
+}
+
+.modern-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--primary-color);
+}
+
+.icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.current-user-card {
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3) !important;
+  border: none;
+}
+
+.current-user-card:hover {
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.5) !important;
+}
+
+

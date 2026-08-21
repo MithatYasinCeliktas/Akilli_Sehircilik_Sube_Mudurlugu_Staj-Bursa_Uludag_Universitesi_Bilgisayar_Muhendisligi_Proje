@@ -1,0 +1,105 @@
+<div class="relative min-h-screen w-full overflow-hidden flex">
+  
+  <!-- Global Arka Plan App Component'tan Gelecek -->
+  <!-- Sağ Tarafa Yaslanmış Giriş Paneli -->
+  <div class="z-1 w-full flex align-items-center justify-content-center md:justify-content-end px-4 md:px-8">
+    
+    <!-- Cam efekti (glassmorphism) daha şeffaf hale getirildi -->
+    <div class="p-5 w-full md:w-30rem border-round-2xl shadow-8" 
+         style="background: rgba(255, 255, 255, 0.55); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.4);">
+      
+      <div class="text-center mb-5">
+        <!-- İkon yerine yüklenen logo eklendi -->
+        <img src="assets/logo.jpg" alt="Kurum Logosu" class="mb-3 border-circle shadow-3" style="width: 80px; height: 80px; object-fit: cover;">
+        
+        <div class="text-900 text-3xl font-bold mb-2 text-gradient">Faaliyet Raporu Sistemi</div>
+        <span class="text-800 font-medium">Lütfen hesabınıza giriş yapın</span>
+      </div>
+
+      <p-messages *ngIf="errorMessage" severity="error">
+        <ng-template pTemplate="content">
+          <span>{{ errorMessage }}</span>
+        </ng-template>
+      </p-messages>
+
+      <form [formGroup]="loginForm" (submit)="$event.preventDefault(); onSubmit()" onsubmit="event.preventDefault()">
+        <div class="mb-4">
+          <label for="email" class="block text-900 font-bold mb-2">E-Posta Adresi</label>
+          <span class="p-input-icon-right w-full">
+            <i class="pi pi-envelope text-600"></i>
+            <input
+              id="email"
+              type="email"
+              pInputText
+              formControlName="email"
+              class="w-full bg-white-alpha-90"
+              placeholder="ornek@belediye.gov.tr"
+            />
+          </span>
+          <small
+            *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            class="p-error block mt-1 font-bold"
+          >
+            Geçerli bir e-posta adresi giriniz.
+          </small>
+        </div>
+
+        <div class="mb-5">
+          <label for="password" class="block text-900 font-bold mb-2">Şifre</label>
+          <span class="p-input-icon-right w-full">
+            <i class="pi pi-lock text-600"></i>
+            <input
+              id="password"
+              type="password"
+              pInputText
+              formControlName="password"
+              class="w-full bg-white-alpha-90"
+              placeholder="••••••••"
+            />
+          </span>
+          <small
+            *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            class="p-error block mt-1 font-bold"
+          >
+            Şifre en az 6 karakter olmalıdır.
+          </small>
+        </div>
+
+        <button
+          pButton
+          type="submit"
+          label="Giriş Yap"
+          icon="pi pi-sign-in"
+          class="w-full p-button-primary shadow-4 mb-3"
+          [loading]="loading"
+          (click)="$event.preventDefault(); onSubmit()"
+        ></button>
+        
+        <div class="text-center mt-3">
+          <a href="#" (click)="showKvkk($event)" class="text-600 hover:text-900 transition-colors transition-duration-200 text-sm font-semibold text-decoration-none">
+            Kişisel Verilerin Korunması (KVKK) Aydınlatma Metni
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<p-dialog header="KVKK Aydınlatma Metni" [(visible)]="displayKvkk" [modal]="true" [style]="{width: '50vw'}" [breakpoints]="{'960px': '75vw', '640px': '95vw'}" [draggable]="false" [resizable]="false">
+  <div class="line-height-3 text-700">
+    <h3 class="mt-0 mb-3 text-900">1. Veri Sorumlusunun Kimliği</h3>
+    <p>Bursa Büyükşehir Belediyesi olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz veri sorumlusu sıfatıyla aşağıda açıklanan amaçlar kapsamında işlenebilecektir.</p>
+    
+    <h3 class="mt-4 mb-3 text-900">2. Kişisel Verilerin Hangi Amaçla İşleneceği</h3>
+    <p>Toplanan kişisel verileriniz (Ad, Soyad, E-posta, Kurum Sicil No vb.), Faaliyet Raporu Sistemine güvenli girişinizin sağlanması, yetki sınırlarınızın belirlenmesi ve kurum içi iletişim/onay süreçlerinin yürütülmesi amaçlarıyla KVKK'nın 5. ve 6. maddelerinde belirtilen şartlara uygun olarak işlenmektedir.</p>
+    
+    <h3 class="mt-4 mb-3 text-900">3. İşlenen Kişisel Verilerin Kimlere ve Hangi Amaçla Aktarılabileceği</h3>
+    <p>Verileriniz, yalnızca mevzuatın emrettiği hukuki zorunluluklar kapsamında yetkili kamu kurum ve kuruluşları ile paylaşılabilecek olup, bunun dışında hiçbir üçüncü şahıs veya kurumla paylaşılmamaktadır.</p>
+
+    <h3 class="mt-4 mb-3 text-900">4. Haklarınız</h3>
+    <p>KVKK'nın 11. maddesi uyarınca veri sorumlusuna başvurarak kişisel verilerinizin işlenip işlenmediğini öğrenme, silinmesini talep etme ve eksik/yanlış işlenmişse düzeltilmesini isteme hakkına sahipsiniz.</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton icon="pi pi-check" (click)="displayKvkk=false" label="Okudum, Anladım" class="p-button-outlined"></button>
+  </ng-template>
+</p-dialog>

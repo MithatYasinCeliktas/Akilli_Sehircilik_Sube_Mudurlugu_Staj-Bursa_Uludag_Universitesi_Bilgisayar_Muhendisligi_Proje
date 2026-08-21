@@ -1,0 +1,63 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="card surface-card p-4 shadow-1 border-round">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-column">
+      <h2 class="text-2xl font-bold m-0">Kurum / Kuruluş Yönetimi</h2>
+      <p class="text-600 mt-1">Koordinasyon gerektiren işlerde seçilebilecek kurum ve şirketlerin listesi.</p>
+    </div>
+    <button pButton label="Yeni Kurum Ekle" icon="pi pi-plus" class="p-button-primary" (click)="showAddDialog()"></button>
+  </div>
+
+  <p-table [value]="institutions" [loading]="loading" styleClass="p-datatable-striped" responsiveLayout="scroll">
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 60%">Kurum Adı</th>
+        <th style="width: 20%">Durum</th>
+        <th style="width: 20%" class="text-right">İşlemler</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-inst>
+      <tr>
+        <td class="font-medium">{{inst.name}}</td>
+        <td>
+          <span [class]="'px-2 py-1 border-round text-sm font-bold ' + (inst.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')">
+            {{inst.is_active ? 'Aktif' : 'Pasif'}}
+          </span>
+        </td>
+        <td class="text-right">
+          <button *ngIf="canEdit(inst)" pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-success mr-2" (click)="showEditDialog(inst)" pTooltip="Düzenle"></button>
+          <button *ngIf="canEdit(inst)" pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="confirmDelete(inst)" pTooltip="Sil"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="3" class="text-center p-4">Henüz hiç kurum eklenmemiş.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [header]="isEditing ? 'Kurum Düzenle' : 'Yeni Kurum Ekle'" [(visible)]="displayDialog" [modal]="true" [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="p-fluid">
+      <div class="field mb-4">
+        <label for="name" class="font-bold">Kurum / Şirket Adı <span class="text-red-500">*</span></label>
+        <input pInputText id="name" formControlName="name" autofocus />
+        <small class="text-red-500 block mt-1" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">Kurum adı zorunludur.</small>
+      </div>
+
+      <div class="field mb-4 flex align-items-center">
+        <p-inputSwitch formControlName="is_active" inputId="isActive"></p-inputSwitch>
+        <label for="isActive" class="ml-2 font-bold mb-0">Aktif olarak kullanılabilsin mi?</label>
+      </div>
+    </div>
+    
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button pButton type="button" label="İptal" class="p-button-text p-button-secondary" (click)="displayDialog = false"></button>
+      <button pButton type="submit" label="Kaydet" icon="pi pi-check" [loading]="formLoading"></button>
+    </div>
+  </form>
+</p-dialog>

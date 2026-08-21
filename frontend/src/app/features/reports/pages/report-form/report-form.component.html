@@ -1,0 +1,322 @@
+<p-toast></p-toast>
+<div class="card surface-card p-4 shadow-1 border-round">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold m-0">{{ isEditMode ? 'Rapor Detayı' : 'Yeni Faaliyet Raporu' }}</h2>
+    <div class="flex gap-2">
+      <button pButton label="Geri Dön" icon="pi pi-arrow-left" class="p-button-secondary" (click)="goBack()"></button>
+    </div>
+  </div>
+
+  <form [formGroup]="reportForm" (ngSubmit)="onReportSubmit()">
+    <div class="grid mb-4">
+      <div class="col-12 md:col-6">
+        <label class="block font-medium mb-2">Yıl</label>
+        <p-inputNumber formControlName="year" [useGrouping]="false" class="w-full"></p-inputNumber>
+      </div>
+      <div class="col-12 md:col-6">
+        <label class="block font-medium mb-2">Ay (1-12)</label>
+        <p-inputNumber formControlName="month" class="w-full"></p-inputNumber>
+      </div>
+    </div>
+    <div class="flex justify-content-end mb-4" *ngIf="canEditReportBase">
+      <button pButton type="submit" label="Rapor Bilgilerini Kaydet" icon="pi pi-check" class="p-button-primary" [loading]="loading"></button>
+    </div>
+  </form>
+
+  <p-divider align="center" *ngIf="isEditMode">
+    <span class="p-tag text-base">Faaliyet Satırları</span>
+  </p-divider>
+
+  <div *ngIf="isEditMode">
+    
+    <div class="flex gap-2 mb-3">
+      <button *ngIf="canAddRow" type="button" pButton label="Yeni Satır Ekle" icon="pi pi-plus"
+        class="p-button-outlined p-button-primary" (click)="openNewItemModal()"></button>
+      <button *ngIf="canApproveReport" type="button" pButton label="Tüm Raporu Onayla" icon="pi pi-check-circle"
+        class="p-button-success" (click)="approveFullReport()"></button>
+      <button *ngIf="canTransferReport" type="button" pButton label="Üst Yöneticiye Aktar" icon="pi pi-send"
+        class="p-button-info" (click)="transferReport()"></button>
+    </div>
+
+
+    
+    
+    <h3 class="mt-4 mb-2">Yapılan İşler</h3>
+    <p-table [value]="yapilanIsler" responsiveLayout="scroll" sortMode="multiple" [multiSortMeta]="[{field: 'creator_id', order: 1}]" [tableStyle]="{'table-layout': 'fixed', 'min-width': '800px'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th [style.width]="colWidthDefault">Personel (Ekleyen)</th>
+          <th [style.width]="colWidthContent">Açıklama</th>
+          <th [style.width]="colWidthDefault">Durum / Not</th>
+          <th [style.width]="colWidthDefault">İşlemler</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr [id]="'item-' + item.id" [ngClass]="{'bg-yellow-50': item.id === highlightedItemId}">
+          <td class="vertical-align-top text-sm">{{ item.creator?.full_name || 'Kullanıcı #' + item.creator_id }}</td>
+          <td class="vertical-align-top text-sm">
+            <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
+              {{ item.content }}
+            </div>
+          </td>
+          <td class="vertical-align-top">
+            <span
+              class="badge p-1 border-round text-xs font-bold"
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-700': item.status === 'PENDING',
+                'bg-green-100 text-green-700': item.status === 'APPROVED',
+                'bg-red-100 text-red-700': item.status === 'REJECTED'
+              }"
+            >
+              {{ item.status === 'PENDING' ? 'ONAY BEKLİYOR' : item.status === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ' }}
+            </span>
+            <div *ngIf="item.rejection_note" class="text-xs text-red-500 mt-1" style="white-space: pre-wrap; word-wrap: break-word;">
+              <strong>Not:</strong> {{ item.rejection_note }}
+            </div>
+          </td>
+          <td class="vertical-align-top">
+            <div class="flex gap-2">
+              <button *ngIf="item.report_id === reportData?.id && item.creator_id === currentUserId && item.status !== 'APPROVED'"
+                pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-warning"
+                pTooltip="Düzenle" (click)="openEditItemModal(item)"></button>
+              
+              <button *ngIf="item.report_id === reportData?.id && item.creator_id === currentUserId && item.status !== 'APPROVED'"
+                pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger"
+                pTooltip="Sil" (click)="deleteItem(item.id)"></button>
+
+              <button *ngIf="item.report_id !== reportData?.id && reportData?.user_id === currentUserId && reportData?.status !== 'APPROVED'"
+                pButton icon="pi pi-minus-circle" class="p-button-rounded p-button-text p-button-secondary"
+                pTooltip="Rapordan ÇıÇıÇıkar" (click)="deleteItem(item.id)"></button>
+
+              <button *ngIf="isCreator"
+                pButton icon="pi pi-check-square" class="p-button-rounded p-button-text p-button-success"
+                pTooltip="Değerlendir" (click)="openReviewModal(item)"></button>
+                
+              <button *ngIf="item.creator_id === currentUserId && item.status === 'REJECTED' && item.source_item_id"
+                pButton icon="pi pi-forward" class="p-button-rounded p-button-text p-button-warning"
+                pTooltip="Alta İlet" (click)="openPassDownModal(item)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center p-4">Henüz satır eklenmedi.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+
+    <h3 class="mt-4 mb-2">Yapılacak İşler</h3>
+    <p-table [value]="yapilacakIsler" responsiveLayout="scroll" sortMode="multiple" [multiSortMeta]="[{field: 'creator_id', order: 1}]" [tableStyle]="{'table-layout': 'fixed', 'min-width': '800px'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th [style.width]="colWidthDefault">Personel (Ekleyen)</th>
+          <th [style.width]="colWidthContent">Açıklama</th>
+          <th [style.width]="colWidthDefault">Durum / Not</th>
+          <th [style.width]="colWidthDefault">İşlemler</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr [id]="'item-' + item.id" [ngClass]="{'bg-yellow-50': item.id === highlightedItemId}">
+          <td class="vertical-align-top text-sm">{{ item.creator?.full_name || 'Kullanıcı #' + item.creator_id }}</td>
+          <td class="vertical-align-top text-sm">
+            <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
+              {{ item.content }}
+            </div>
+          </td>
+          <td class="vertical-align-top">
+            <span
+              class="badge p-1 border-round text-xs font-bold"
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-700': item.status === 'PENDING',
+                'bg-green-100 text-green-700': item.status === 'APPROVED',
+                'bg-red-100 text-red-700': item.status === 'REJECTED'
+              }"
+            >
+              {{ item.status === 'PENDING' ? 'ONAY BEKLİYOR' : item.status === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ' }}
+            </span>
+            <div *ngIf="item.rejection_note" class="text-xs text-red-500 mt-1" style="white-space: pre-wrap; word-wrap: break-word;">
+              <strong>Not:</strong> {{ item.rejection_note }}
+            </div>
+          </td>
+          <td class="vertical-align-top">
+            <div class="flex gap-2">
+              <button *ngIf="item.report_id === reportData?.id && item.creator_id === currentUserId && item.status !== 'APPROVED'"
+                pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-warning"
+                pTooltip="Düzenle" (click)="openEditItemModal(item)"></button>
+              
+              <button *ngIf="item.report_id === reportData?.id && item.creator_id === currentUserId && item.status !== 'APPROVED'"
+                pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger"
+                pTooltip="Sil" (click)="deleteItem(item.id)"></button>
+
+              <button *ngIf="item.report_id !== reportData?.id && reportData?.user_id === currentUserId && reportData?.status !== 'APPROVED'"
+                pButton icon="pi pi-minus-circle" class="p-button-rounded p-button-text p-button-secondary"
+                pTooltip="Rapordan ÇıÇıÇıkar" (click)="deleteItem(item.id)"></button>
+
+              <button *ngIf="isCreator"
+                pButton icon="pi pi-check-square" class="p-button-rounded p-button-text p-button-success"
+                pTooltip="Değerlendir" (click)="openReviewModal(item)"></button>
+                
+              <button *ngIf="item.creator_id === currentUserId && item.status === 'REJECTED' && item.source_item_id"
+                pButton icon="pi pi-forward" class="p-button-rounded p-button-text p-button-warning"
+                pTooltip="Alta İlet" (click)="openPassDownModal(item)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center p-4">Henüz satır eklenmedi.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+
+    <h3 class="mt-5 mb-2">Koordinasyon Gerektiren İşler</h3>
+    <p-table [value]="koordinasyonIsleri" responsiveLayout="scroll" sortMode="multiple" [multiSortMeta]="[{field: 'creator_id', order: 1}]" [tableStyle]="{'table-layout': 'fixed', 'min-width': '1000px'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th [style.width]="colWidthDefault">Personel (Ekleyen)</th>
+          <th [style.width]="colWidthContent">Açıklama</th>
+          <th [style.width]="colWidthInstitutions">Kurum</th>
+          <th [style.width]="colWidthProposals">Öneriler</th>
+          <th [style.width]="colWidthDefault">Durum / Not</th>
+          <th [style.width]="colWidthDefault">İşlemler</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr [id]="'item-' + item.id" [ngClass]="{'bg-yellow-50': item.id === highlightedItemId}">
+          <td class="vertical-align-top text-sm">{{ item.creator?.full_name || 'Kullanıcı #' + item.creator_id }}</td>
+          <td class="vertical-align-top text-sm">
+            <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
+              {{ item.content }}
+            </div>
+          </td>
+          <td class="vertical-align-top text-sm">
+            <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
+              {{ item.related_institutions }}
+            </div>
+          </td>
+          <td class="vertical-align-top text-sm">
+            <div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">
+              {{ item.solution_proposals }}
+            </div>
+          </td>
+          <td class="vertical-align-top">
+            <span
+              class="badge p-1 border-round text-xs font-bold"
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-700': item.status === 'PENDING',
+                'bg-green-100 text-green-700': item.status === 'APPROVED',
+                'bg-red-100 text-red-700': item.status === 'REJECTED'
+              }"
+            >
+              {{ item.status === 'PENDING' ? 'ONAY BEKLİYOR' : item.status === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ' }}
+            </span>
+            <div *ngIf="item.rejection_note" class="text-xs text-red-500 mt-1" style="white-space: pre-wrap; word-wrap: break-word;">
+              <strong>Not:</strong> {{ item.rejection_note }}
+            </div>
+          </td>
+          <td class="vertical-align-top">
+            <div class="flex gap-2">
+              <button *ngIf="item.report_id === reportData?.id && item.creator_id === currentUserId && item.status !== 'APPROVED'"
+                pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-warning"
+                pTooltip="Düzenle" (click)="openEditItemModal(item)"></button>
+              
+              <button *ngIf="item.report_id === reportData?.id && item.creator_id === currentUserId && item.status !== 'APPROVED'"
+                pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger"
+                pTooltip="Sil" (click)="deleteItem(item.id)"></button>
+
+              <button *ngIf="item.report_id !== reportData?.id && reportData?.user_id === currentUserId && reportData?.status !== 'APPROVED'"
+                pButton icon="pi pi-minus-circle" class="p-button-rounded p-button-text p-button-secondary"
+                pTooltip="Rapordan ÇıÇıÇıkar" (click)="deleteItem(item.id)"></button>
+
+              <button *ngIf="isCreator"
+                pButton icon="pi pi-check-square" class="p-button-rounded p-button-text p-button-success"
+                pTooltip="Değerlendir" (click)="openReviewModal(item)"></button>
+
+              <button *ngIf="item.creator_id === currentUserId && item.status === 'REJECTED' && item.source_item_id"
+                pButton icon="pi pi-forward" class="p-button-rounded p-button-text p-button-warning"
+                pTooltip="Alta İlet" (click)="openPassDownModal(item)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center p-4">Henüz satır eklenmedi.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    
+
+  </div>
+</div>
+
+<!-- ITEM ADD/EDIT MODAL -->
+<p-dialog [(visible)]="displayItemModal" [modal]="true" [style]="{width: '50vw'}" [header]="editingItemId ? 'Satır Düzenle' : 'Yeni Satır Ekle'">
+  <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
+    <div class="grid">
+      <div class="col-12 mb-3">
+        <label class="block font-medium mb-2">Kategori</label>
+        <p-dropdown [options]="categoryOptions" formControlName="category" optionLabel="label" optionValue="value" class="w-full" (onChange)="onCategoryChange()" appendTo="body"></p-dropdown>
+      </div>
+      <div class="col-12 mb-3">
+        <label class="block font-medium mb-2">Açıklama</label>
+        <textarea pInputTextarea formControlName="content" class="w-full" rows="4"></textarea>
+      </div>
+      <ng-container *ngIf="itemForm.get('category')?.value === categoryKordinasyon">
+        <div class="col-12 mb-3">
+          <label class="block font-medium mb-2">İlgili Kurum Kuruluşlar</label>
+          <p-multiSelect [options]="institutions" formControlName="related_institutions" optionLabel="name" optionValue="name" defaultLabel="Kurum/Kuruluş seçin" display="chip" class="w-full" styleClass="w-full" appendTo="body"></p-multiSelect>
+        </div>
+        <div class="col-12 mb-3">
+          <label class="block font-medium mb-2">Çözüm Önerileri</label>
+          <textarea pInputTextarea formControlName="solution_proposals" class="w-full" rows="2"></textarea>
+        </div>
+      </ng-container>
+    </div>
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button pButton type="button" label="İptal" class="p-button-secondary" (click)="displayItemModal=false"></button>
+      <button pButton type="submit" label="Kaydet" icon="pi pi-check" class="p-button-primary" [loading]="loading" [disabled]="itemForm.invalid"></button>
+    </div>
+  </form>
+</p-dialog>
+
+<!-- ITEM REVIEW MODAL -->
+<p-dialog [(visible)]="displayReviewModal" [modal]="true" [style]="{width: '40vw'}" header="Satırı Değerlendir">
+  <form [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+    <div class="grid">
+      <div class="col-12 mb-3">
+        <label class="block font-medium mb-2">Durum</label>
+        <p-dropdown [options]="[{label: 'Onayla', value: 'APPROVED'}, {label: 'Reddet', value: 'REJECTED'}]" formControlName="status" optionLabel="label" optionValue="value" class="w-full" (onChange)="onReviewStatusChange()" appendTo="body"></p-dropdown>
+      </div>
+      <div class="col-12 mb-3" *ngIf="reviewForm.get('status')?.value === 'REJECTED'">
+        <label class="block font-medium mb-2 text-red-500">Red Nedeni</label>
+        <textarea pInputTextarea formControlName="rejection_note" class="w-full" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button pButton type="button" label="İptal" class="p-button-secondary" (click)="displayReviewModal=false"></button>
+      <button pButton type="submit" label="Kaydet" icon="pi pi-check" class="p-button-primary" [loading]="loading" [disabled]="reviewForm.invalid"></button>
+    </div>
+  </form>
+</p-dialog>
+
+<!-- PASS DOWN MODAL -->
+<p-dialog [(visible)]="displayPassDownModal" [modal]="true" [style]="{width: '40vw'}" header="Red Durumunu Alta İlet">
+  <form [formGroup]="passDownForm" (ngSubmit)="submitPassDown()">
+    <div class="grid">
+      <div class="col-12 mb-3">
+        <label class="block font-medium mb-2">Ek Notunuz (İsteğe Bağlı)</label>
+        <textarea pInputTextarea formControlName="extra_note" class="w-full" rows="3" placeholder="Personelinize iletmek istediğiniz ek not..."></textarea>
+      </div>
+    </div>
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button pButton type="button" label="İptal" class="p-button-secondary" (click)="displayPassDownModal=false"></button>
+      <button pButton type="submit" label="İlet" icon="pi pi-send" class="p-button-warning" [loading]="loading"></button>
+    </div>
+  </form>
+</p-dialog>

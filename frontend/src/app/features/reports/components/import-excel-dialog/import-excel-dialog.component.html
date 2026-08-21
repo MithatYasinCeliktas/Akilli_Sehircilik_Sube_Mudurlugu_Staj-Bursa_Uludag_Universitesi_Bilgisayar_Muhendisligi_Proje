@@ -1,0 +1,184 @@
+<div class="flex flex-column gap-3">
+  <!-- Adım 1: Dosya Yükleme -->
+  <div *ngIf="step === 1" class="flex flex-column gap-3">
+    <p>Sisteme toplu olarak rapor girmek için örnek Excel şablonunu kullanabilirsiniz. Mevcut raporları indirdiğiniz formattaki Excel dosyasını seçip yükleyin.</p>
+    <p class="text-600 m-0">Faaliyet raporu satırlarını içeren Excel (.xlsx) dosyasını seçin.</p>
+    
+    <div *ngIf="isManager" class="flex flex-column gap-2 mb-3">
+      <label class="font-bold">Hedef Rapor:</label>
+      <div class="flex gap-4">
+        <div class="flex align-items-center">
+          <p-radioButton name="target" value="OWN_REPORT" [(ngModel)]="targetReport" inputId="target1"></p-radioButton>
+          <label for="target1" class="ml-2">Kendi Raporuma (Personellerim adına teklif olarak eklenecek)</label>
+        </div>
+        <div class="flex align-items-center">
+          <p-radioButton name="target" value="MANAGER_REPORT" [(ngModel)]="targetReport" inputId="target2"></p-radioButton>
+          <label for="target2" class="ml-2">Üst Yöneticimin Raporuna (Kendi faaliyetlerim)</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex justify-content-center border-2 border-dashed border-300 border-round p-5 hover:border-primary transition-colors cursor-pointer" 
+         (click)="fileInput.click()">
+      <div class="flex flex-column align-items-center gap-2">
+        <i class="pi pi-upload text-4xl text-500"></i>
+        <span class="text-700 font-medium" *ngIf="!selectedFile">Excel dosyası seçmek için tıklayın</span>
+        <span class="text-primary font-medium" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+      </div>
+      <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls" class="hidden">
+    </div>
+    
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button pButton label="İptal" class="p-button-text" (click)="close()"></button>
+      <button pButton label="Önizleme" icon="pi pi-arrow-right" class="p-button-primary" 
+              [disabled]="!selectedFile" [loading]="loading" (click)="previewFile()"></button>
+    </div>
+  </div>
+
+  <!-- Adım 2: Önizleme ve Çatışma Çözümü -->
+  <div *ngIf="step === 2" class="flex flex-column gap-3">
+    <p-messages [(value)]="messages" [enableService]="false"></p-messages>
+
+    <div *ngIf="previewData?.global_errors?.length" class="text-red-500 font-medium">
+      <ul>
+        <li *ngFor="let err of previewData.global_errors">{{ err }}</li>
+      </ul>
+    </div>
+
+    <div *ngIf="previewData?.rows?.length">
+      <p-table [value]="previewData.rows" [scrollable]="true" scrollHeight="400px" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 5%">Satır</th>
+            <th style="width: 5%">Durum</th>
+            <th style="width: 10%">Rapor ID</th>
+            <th style="width: 25%">Personel Bilgileri</th>
+            <th style="width: 15%">Kategori</th>
+            <th style="width: 25%">İçerik Özeti</th>
+            <th style="width: 15%">Uyarı/Hata</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr [ngClass]="{'bg-red-50': row.errors.length > 0, 'bg-yellow-50': (row.conflicts.length > 0 || row.institution_conflicts?.length > 0) && row.errors.length === 0}">
+            <td>{{ row.original_index }} ({{ row.sheet_name }})</td>
+            <td>
+              <i class="pi" [ngClass]="{
+                'pi-times-circle text-red-500': row.errors.length > 0,
+                'pi-exclamation-triangle text-yellow-500': (row.conflicts.length > 0 || row.institution_conflicts?.length > 0) && row.errors.length === 0,
+                'pi-check-circle text-green-500': row.errors.length === 0 && row.conflicts.length === 0
+              }"></i>
+            </td>
+            <td>
+              <input pInputText [(ngModel)]="row.id" class="w-full text-sm" placeholder="ID (Opsiyonel)" />
+            </td>
+            <td>
+              <div class="flex flex-column gap-2">
+                <textarea pInputTextarea [(ngModel)]="row.personnel" class="w-full text-sm p-1" rows="2" placeholder="Ad Soyad"></textarea>
+                <textarea pInputTextarea [(ngModel)]="row.title" class="w-full text-sm p-1" rows="2" placeholder="Ünvan"></textarea>
+                <textarea pInputTextarea [(ngModel)]="row.dept" class="w-full text-sm p-1" rows="2" placeholder="Daire Bşk."></textarea>
+                <textarea pInputTextarea [(ngModel)]="row.div" class="w-full text-sm p-1" rows="2" placeholder="Şube Md."></textarea>
+              </div>
+              
+              <div *ngIf="row.conflicts.length > 0" class="mt-2">
+                <label class="text-xs font-bold text-500 block mb-1">Eşleşenler:</label>
+                <p-dropdown [options]="row.conflicts" [(ngModel)]="row.target_user_id" 
+                            [virtualScroll]="true" [virtualScrollItemSize]="38"
+                            optionLabel="full_name" optionValue="id" placeholder="Personel Seçin" 
+                            appendTo="body" styleClass="w-full">
+                  <ng-template pTemplate="item" let-user>
+                    <div>
+                      <div><strong>{{ user.full_name }}</strong></div>
+                      <div class="text-xs text-500">{{ user.title }} - {{ user.unit_name }}</div>
+                    </div>
+                  </ng-template>
+                  <ng-template pTemplate="selectedItem" let-user>
+                    {{ user.full_name }}
+                  </ng-template>
+                </p-dropdown>
+              </div>
+              
+              <div *ngIf="row.available_reports && row.available_reports.length > 1" class="mt-2">
+                <label class="text-xs font-bold text-500 block mb-1">Hedef Rapor:</label>
+                <p-dropdown [options]="row.available_reports" [(ngModel)]="row.selected_report_id"
+                            [virtualScroll]="true" [virtualScrollItemSize]="38"
+                            optionLabel="title" optionValue="id" placeholder="Rapor Seçin"
+                            appendTo="body" styleClass="w-full">
+                </p-dropdown>
+              </div>
+
+              <!-- Institution Conflicts -->
+              <div *ngIf="row.institution_conflicts?.length > 0" class="mt-3 surface-ground p-2 border-round">
+                <div class="text-sm font-bold text-red-500 mb-2">Kurum Uyuşmazlıkları</div>
+                <div *ngFor="let conflict of row.institution_conflicts" class="mb-3 border-bottom-1 surface-border pb-2">
+                  <div class="text-xs mb-1">Eksik Kurum: <strong>{{ conflict.raw }}</strong></div>
+                  <div class="flex flex-column gap-2">
+                    <div class="flex gap-2">
+                      <p-dropdown [options]="conflict.suggestions.length > 0 ? conflict.suggestions : institutions"
+                                  #instDrop
+                                  [optionLabel]="conflict.suggestions.length > 0 ? '' : 'name'"
+                                  [optionValue]="conflict.suggestions.length > 0 ? '' : 'name'"
+                                  placeholder="Öneriler / Tüm Kurumlar"
+                                  appendTo="body" styleClass="w-full">
+                      </p-dropdown>
+                      <button pButton icon="pi pi-check" label="Değiştir" class="p-button-sm p-button-outlined" (click)="resolveInstitutionConflict(row, conflict, instDrop.value)"></button>
+                    </div>
+                    <button pButton icon="pi pi-plus" label="Yeni Ekle / Talep Et" class="p-button-sm p-button-text p-button-success" (click)="requestOrAddInstitution(row, conflict)"></button>
+                  </div>
+                </div>
+              </div>
+
+            </td>
+            <td>{{ getCategoryLabel(row.category) }}</td>
+            <td>
+              <div class="flex flex-column gap-2" style="min-width: 250px">
+                <ng-container *ngIf="row.category !== 'KORDINASYON_GEREKTIREN_ISLER'">
+                  <textarea pInputTextarea [(ngModel)]="row.content" class="w-full text-sm" rows="6" placeholder="Açıklama / İçerik"></textarea>
+                </ng-container>
+                <ng-container *ngIf="row.category === 'KORDINASYON_GEREKTIREN_ISLER'">
+                  <textarea pInputTextarea [(ngModel)]="row.kordinasyon" class="w-full text-sm" rows="4" placeholder="Koordinasyon Gerektiren İş"></textarea>
+                  <textarea pInputTextarea [(ngModel)]="row.kurum" class="w-full text-sm" rows="4" placeholder="İlgili Kurum / Kuruluşlar"></textarea>
+                  <textarea pInputTextarea [(ngModel)]="row.cozum" class="w-full text-sm" rows="4" placeholder="Çözüm Önerileri"></textarea>
+                </ng-container>
+              </div>
+            </td>
+            <td>
+              <div *ngIf="row.errors.length > 0" class="text-red-500 text-sm">
+                <div *ngFor="let err of row.errors">- {{ err }}</div>
+              </div>
+              <div *ngIf="(row.conflicts.length > 0 || row.institution_conflicts?.length > 0) && row.errors.length === 0" class="text-yellow-600 text-sm">
+                İsim benzerliği var, lütfen yandaki listeden seçiniz.
+              </div>
+              <div *ngIf="row.available_reports?.length > 1 && !row.selected_report_id" class="text-yellow-600 text-sm mt-1">
+                Lütfen hedef raporu seçiniz.
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <div class="flex justify-content-between mt-4">
+      <button pButton label="Geri" icon="pi pi-arrow-left" class="p-button-text" (click)="step = 1"></button>
+      <button pButton label="Kontrol Et ve Onayla" icon="pi pi-check" class="p-button-success" 
+              [loading]="loading" (click)="executeImport()"></button>
+    </div>
+  </div>
+
+  <!-- Adım 3: Sonuç -->
+  <div *ngIf="step === 3" class="flex flex-column align-items-center gap-3 py-5">
+    <i class="pi pi-check-circle text-6xl text-green-500"></i>
+    <h2 class="m-0 text-xl font-medium">İçe Aktarma Tamamlandı</h2>
+    <p class="text-600 text-center">
+      {{ resultData?.success_count }} satır başarıyla eklendi/güncellendi.
+    </p>
+    
+    <div *ngIf="resultData?.error_count > 0" class="w-full text-red-500">
+      <strong>{{ resultData.error_count }} satırda hata oluştu:</strong>
+      <ul class="text-sm">
+        <li *ngFor="let err of resultData.errors">{{ err }}</li>
+      </ul>
+    </div>
+
+    <button pButton label="Kapat" class="p-button-primary mt-3" (click)="close(true)"></button>
+  </div>
+</div>
