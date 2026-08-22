@@ -1,6 +1,9 @@
 @echo off
 color 0B
 
+for /f "delims=" %%I in ('powershell -command "(Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias Wi-Fi, Ethernet -ErrorAction SilentlyContinue | Select-Object -First 1).IPAddress"') do set "IP=%%I"
+if "%IP%"=="" set "IP=localhost"
+
 echo ===================================================
 echo   Bursa Faaliyet Raporu - Docker Baslatici
 echo ===================================================
@@ -16,7 +19,7 @@ docker-compose up -d --build
 echo.
 echo ===================================================
 echo   SISTEM BASARIYLA AYAGA KALDIRILDI!
-echo   Frontend: http://192.168.1.152:4200
-echo   Backend API: http://192.168.1.152:8000/docs
+echo   Frontend: http://%IP%:4200
+echo   Backend API: http://%IP%:8000/docs
 echo ===================================================
 pause
